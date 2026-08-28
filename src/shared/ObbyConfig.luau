@@ -4,7 +4,7 @@
 local ObbyConfig = {}
 
 ObbyConfig.GameName = "Aura Farm Obby"
-ObbyConfig.Version = "0.2.0"
+ObbyConfig.Version = "0.3.0"
 
 -- Folder / tag names used in Workspace
 ObbyConfig.StageFolderName = "AuraFarmStage1"
@@ -22,8 +22,14 @@ ObbyConfig.FinishAuraBonus = 25
 ObbyConfig.FinishCoinBonus = 10
 ObbyConfig.CheckpointCoinBonus = 1
 ObbyConfig.OrbCoinValue = 1
-ObbyConfig.ComboWindowSec = 2.5 -- chain orb pickups for bonus aura
-ObbyConfig.ComboBonusPerStep = 1 -- extra aura per combo step after 1
+ObbyConfig.ComboWindowSec = 2.5
+ObbyConfig.ComboBonusPerStep = 1
+
+-- Offline earnings (gear-clicker style AFK drip)
+ObbyConfig.OfflineMinSec = 120
+ObbyConfig.OfflineMaxSec = 6 * 3600
+ObbyConfig.OfflineAuraPerHour = 12
+ObbyConfig.OfflineCoinsPerHour = 4
 
 -- Gameplay
 ObbyConfig.RestartCooldownSec = 1.25
@@ -32,20 +38,37 @@ ObbyConfig.FallY = -30
 ObbyConfig.StartCFrame = CFrame.new(0, 18, 0)
 
 -- DataStore
-ObbyConfig.DataStoreName = "AuraFarmObby_v1"
-ObbyConfig.DataStoreEnabled = true -- set false in Studio if API services off
+ObbyConfig.DataStoreName = "AuraFarmObby_v2"
+ObbyConfig.OrderedBestTimeName = "AuraFarm_BestTime_v1"
+ObbyConfig.DataStoreEnabled = true
 
 -- Default saved profile shape
 ObbyConfig.DefaultData = {
 	aura = 0,
 	coins = 0,
-	bestTime = nil, -- seconds (number) or nil
+	bestTime = nil,
 	totalFinishes = 0,
 	totalDeaths = 0,
 	totalOrbs = 0,
 	unlocked = { trail_starter = true },
 	equippedTrail = "trail_starter",
 	achievements = {},
+	-- dailies / streak
+	loginStreak = 0,
+	lastLoginAt = nil,
+	dailyYmd = nil,
+	dailyQuestIds = {},
+	dailyProgress = { finish = 0, orb = 0, death = 0, checkpoint = 0, play_minutes = 0 },
+	dailyClaimed = {},
+	streakClaimedYmd = nil,
+	lastSeenAt = nil,
+	-- meta
+	tutorialDone = false,
+	settings = {
+		music = true,
+		sfx = true,
+		reduceFx = false,
+	},
 }
 
 -- Colors

@@ -1,94 +1,67 @@
 # Aura Farm Obby
 
-A Roblox obby game with aura farming mechanics, smooth animations, professional graphics, and cosmetic rewards.
+Solo fair-skill obby: clear Stage 1, farm Aura, unlock trails, chase best times, hit dailies.
 
-## Systems
+**v0.3** pulls a *lot* more from reference games — not just cosmetics + RNG.
 
-### 1. Animation System (Anima-inspired)
-- Smooth locomotion blending (Idle → Walk → Run)
-- Automatic speed-based transitions
-- Support for directional animations
-- Emote/action animations (Victory, Dance, Cheer)
-- **Files:**
-  - `src/shared/AnimationConfig.luau` - Central animation configuration
-  - `src/client/AnimationSystem.luau` - Animation blending engine
+## Integrated from other repos
 
-### 2. Graphics System
-- Multiple visual presets (Default, Neon, Cinematic, AuraFarm)
-- Post-processing effects (Bloom, Color Correction, Sun Rays)
-- Smooth shader transitions
-- Optimized for highlighting auras
-- **File:** `src/client/GraphicsSystem.luau`
+### [tides-of-trade](https://github.com/Chronos31bit/tides-of-trade)
+| System | In Aura Farm |
+|--------|----------------|
+| ProfileService-style data + autosave | `PlayerData` |
+| Cosmetics catalog + equip | trails shop |
+| Achievements + banners | `Achievements` |
+| Daily quests + login streak | `QuestService` / `DailyQuests` |
+| Weather / environment cycles | `WeatherService` (Clear → Golden → Storm → Night) with Aura mult |
+| Ordered leaderboards | `OrderedStats` best times |
+| Rate limiter on remotes | `RateLimiter` |
+| Time / UTC day helpers | `TimeUtil` |
+| Tutorial dialogue flow | first-run tips |
+| Settings (music / sfx / reduce FX) | Settings panel |
+| Notifications | toast stack + SFX |
+| Sound catalog | `SoundCatalog` + client playback |
+| Central GameConfig | `ObbyConfig` |
 
-### 3. Cosmetics System
-- **Aura Skins** - Colored particle effects (Default, Gold, Crimson, Mystic)
-- **Trails** - Movement trails (Sparkle, Fire, Smoke)
-- **Emotes** - Victory animations, dances, cheers
-- Equippable cosmetics with rarity tiers
-- **File:** `src/client/CosmeticsSystem.luau`
+### [gear-clicker](https://github.com/Chronos31bit/gear-clicker)
+| System | In Aura Farm |
+|--------|----------------|
+| Offline / AFK earnings | `OfflineEarnings` on rejoin |
+| Soft currency loop | Aura orbs + shop |
+| Combo / multiplier feel | orb combo + weather + luck |
+| HUD polish | currency, streak, weather, times |
 
-## How to Use
+## Run
 
-### Setup
-1. Place `src/shared/AnimationConfig.luau` in `ReplicatedStorage/shared/`
-2. Place `src/client/AnimationSystem.luau` in `ReplicatedStorage/client/`
-3. Place `src/client/GraphicsSystem.luau` in `ReplicatedStorage/client/`
-4. Place `src/client/CosmeticsSystem.luau` in `ReplicatedStorage/client/`
-5. Place `src/client/PlayerClient.client.luau` in `StarterPlayer/StarterCharacterScripts/`
-
-### In-Game Controls
-- **E** - Play Victory emote
-- **R** - Cycle aura skins (Default → Gold → Crimson → Mystic)
-- **T** - Cycle trails (None → Sparkle → Fire → Smoke)
-- **G** - Cycle graphics presets (AuraFarm → Neon → Cinematic → Default)
-
-## Customization
-
-### Add Custom Aura Skins
-Edit `CosmeticsSystem.Cosmetics.AuraSkins`:
-```lua
-YourSkin = {
-    Name = "Your Aura Name",
-    Color = Color3.fromRGB(255, 0, 0),  -- RGB color
-    Rarity = "Epic",
-    Particles = "AuraEffect_yourname",
-},
+```bash
+rojo serve
 ```
 
-### Add Graphics Presets
-Edit `GraphicsSystem.Presets`:
-```lua
-YourPreset = {
-    Brightness = 2.0,
-    Ambient = Color3.fromRGB(r, g, b),
-    -- ... more properties
-}
+Rojo → Roblox Studio connect → **Play**.  
+Enable **Studio Access to API Services** for DataStore saves + global best times.
+
+## Controls
+| Key | Action |
+|-----|--------|
+| **R** | Restart run |
+| **B** | Shop (trails) |
+| **Q** | Daily quests |
+| **T** | Best times board |
+| **P** | Settings |
+
+## Loop
+1. Parkour Stage 1 (checkpoints / kills / mover / finish)
+2. Orbs → Aura (combo + lucky mult + weather mult)
+3. Finish → best time + achievements
+4. Spend Aura on trails · claim dailies · build login streak
+5. Leave & return → soft AFK rewards
+
+## Layout
+
+```
+src/shared/   config, catalogs, util, remotes
+src/server/   ObbyServer + StageBuilder + services
+src/client/   full HUD (shop, quests, board, settings, tutorial)
 ```
 
-### Customize Animations
-Edit `AnimationConfig.Animations` with your own animation IDs from Roblox.
-
-## Architecture
-
-```
-src/
-├── shared/
-│   └── AnimationConfig.luau       # Animation IDs & blending config
-├── client/
-│   ├── AnimationSystem.luau       # Smooth animation blending
-│   ├── GraphicsSystem.luau        # Visual effects & lighting
-│   ├── CosmeticsSystem.luau       # Cosmetic skins & trails
-│   └── PlayerClient.client.luau   # Main client entry point
-```
-
-## Next Steps
-
-1. **Connect to Server** - Link cosmetics to DataStore for persistence
-2. **Aura Drops** - Spawn auras with different rarities and skins
-3. **Stage Rewards** - Award cosmetics when completing obby stages
-4. **Leaderboard** - Show players with rarest auras
-5. **Battle Pass** - Seasonal cosmetic rewards
-
----
-
-**Built with smooth animations, stunning graphics, and rewarding cosmetics!**
+Repo: https://github.com/mcallisterganen-dotcom/AuraFarmObby

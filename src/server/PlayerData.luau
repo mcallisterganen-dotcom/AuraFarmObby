@@ -1,4 +1,4 @@
--- Lightweight DataStore profile (tides-of-trade ProfileService idea, simplified).
+-- Lightweight DataStore profile (tides ProfileService idea + gear-clicker lifecycle).
 -- Session-safe: loads on join, autosaves, saves on leave.
 
 local DataStoreService = game:GetService("DataStoreService")
@@ -8,19 +8,7 @@ local ObbyConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("Sh
 
 local PlayerData = {}
 
-type Profile = {
-	aura: number,
-	coins: number,
-	bestTime: number?,
-	totalFinishes: number,
-	totalDeaths: number,
-	totalOrbs: number,
-	unlocked: { [string]: boolean },
-	equippedTrail: string,
-	achievements: { [string]: boolean },
-}
-
-local profiles: { [number]: Profile } = {}
+local profiles: { [number]: any } = {}
 local dirty: { [number]: boolean } = {}
 local store: DataStore? = nil
 local storeReady = false
@@ -36,13 +24,13 @@ local function deepCopy(t)
 	return n
 end
 
-local function mergeDefaults(data: any): Profile
+local function mergeDefaults(data: any)
 	local d = deepCopy(ObbyConfig.DefaultData)
 	if type(data) ~= "table" then
 		return d
 	end
 	for k, v in data do
-		if d[k] ~= nil or k == "bestTime" then
+		if d[k] ~= nil or k == "bestTime" or k == "lastLoginAt" or k == "lastSeenAt" or k == "dailyYmd" or k == "streakClaimedYmd" then
 			if type(v) == "table" and type(d[k]) == "table" then
 				for k2, v2 in v do
 					d[k][k2] = v2
@@ -59,17 +47,31 @@ local function mergeDefaults(data: any): Profile
 	if type(d.achievements) ~= "table" then
 		d.achievements = {}
 	end
+	if type(d.settings) ~= "table" then
+		d.settings = deepCopy(ObbyConfig.DefaultData.settings)
+	end
+	if type(d.dailyProgress) ~= "table" then
+		d.dailyProgress = deepCopy(ObbyConfig.DefaultData.dailyProgress)
+	end
+	if type(d.dailyClaimed) ~= "table" then
+		d.dailyClaimed = {}
+	end
+	if type(d.dailyQuestIds) ~= "table" then
+		d.dailyQuestIds = {}
+	end
 	d.aura = math.max(0, math.floor(tonumber(d.aura) or 0))
 	d.coins = math.max(0, math.floor(tonumber(d.coins) or 0))
 	d.totalFinishes = math.max(0, math.floor(tonumber(d.totalFinishes) or 0))
 	d.totalDeaths = math.max(0, math.floor(tonumber(d.totalDeaths) or 0))
 	d.totalOrbs = math.max(0, math.floor(tonumber(d.totalOrbs) or 0))
+	d.loginStreak = math.max(0, math.floor(tonumber(d.loginStreak) or 0))
 	if d.bestTime ~= nil then
 		d.bestTime = tonumber(d.bestTime)
 	end
 	if type(d.equippedTrail) ~= "string" then
 		d.equippedTrail = "trail_starter"
 	end
+	d.tutorialDone = d.tutorialDone == true
 	return d
 end
 
@@ -94,7 +96,7 @@ function PlayerData.Init()
 	end
 end
 
-function PlayerData.Load(player: Player): Profile
+function PlayerData.Load(player: Player)
 	local userId = player.UserId
 	if profiles[userId] then
 		return profiles[userId]
@@ -118,7 +120,7 @@ function PlayerData.Load(player: Player): Profile
 	return profile
 end
 
-function PlayerData.Get(player: Player): Profile?
+function PlayerData.Get(player: Player)
 	return profiles[player.UserId]
 end
 
@@ -132,9 +134,10 @@ function PlayerData.Save(player: Player): boolean
 	if not profile then
 		return false
 	end
+	profile.lastSeenAt = os.time()
 	if not storeReady or not store or userId <= 0 then
 		dirty[userId] = false
-		return true -- session-only success
+		return true
 	end
 	local ok, err = pcall(function()
 		store:SetAsync(keyFor(userId), profile)
@@ -153,7 +156,7 @@ function PlayerData.Release(player: Player)
 	dirty[player.UserId] = nil
 end
 
-function PlayerData.Snapshot(player: Player): { [string]: any }?
+function PlayerData.Snapshot(player: Player)
 	local p = profiles[player.UserId]
 	if not p then
 		return nil
@@ -168,10 +171,12 @@ function PlayerData.Snapshot(player: Player): { [string]: any }?
 		unlocked = p.unlocked,
 		equippedTrail = p.equippedTrail,
 		achievements = p.achievements,
+		loginStreak = p.loginStreak,
+		tutorialDone = p.tutorialDone,
+		settings = p.settings,
 	}
 end
 
--- Autosave loop
 task.spawn(function()
 	while true do
 		task.wait(60)

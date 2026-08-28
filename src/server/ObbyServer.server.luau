@@ -1,4 +1,6 @@
--- Aura Farm Obby — server: stage, checkpoints, kills, orbs, finish, cosmetics, data
+-- Aura Farm Obby — server hub
+-- Integrates: data, trails, quests/streak, weather, ordered best-times,
+-- offline earnings, rate limits, lucky orbs, achievements, cosmetics.
 
 print("[ObbyServer] Starting")
 
@@ -11,26 +13,50 @@ local CosmeticsCatalog = require(Shared:WaitForChild("CosmeticsCatalog"))
 local Achievements = require(Shared:WaitForChild("Achievements"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local RNG = require(Shared:WaitForChild("RNG"))
+local RateLimiter = require(Shared:WaitForChild("RateLimiter"))
 
 local StageBuilder = require(script.Parent:WaitForChild("StageBuilder"))
 local PlayerData = require(script.Parent:WaitForChild("PlayerData"))
 local TrailService = require(script.Parent:WaitForChild("TrailService"))
+local QuestService = require(script.Parent:WaitForChild("QuestService"))
+local WeatherService = require(script.Parent:WaitForChild("WeatherService"))
+local OrderedStats = require(script.Parent:WaitForChild("OrderedStats"))
+local OfflineEarnings = require(script.Parent:WaitForChild("OfflineEarnings"))
 
 Remotes.InitServer()
 PlayerData.Init()
+OrderedStats.Init()
 
 local remoteFolder = ReplicatedStorage:WaitForChild("ObbyRemotes")
-local Toast = remoteFolder:WaitForChild("Toast") :: RemoteEvent
-local AuraUpdate = remoteFolder:WaitForChild("AuraUpdate") :: RemoteEvent
-local StatsUpdate = remoteFolder:WaitForChild("StatsUpdate") :: RemoteEvent
-local FinishEv = remoteFolder:WaitForChild("Finish") :: RemoteEvent
-local RestartRequest = remoteFolder:WaitForChild("RestartRequest") :: RemoteEvent
-local BuyCosmetic = remoteFolder:WaitForChild("BuyCosmetic") :: RemoteEvent
-local EquipCosmetic = remoteFolder:WaitForChild("EquipCosmetic") :: RemoteEvent
-local CosmeticResult = remoteFolder:WaitForChild("CosmeticResult") :: RemoteEvent
-local AchievementUnlocked = remoteFolder:WaitForChild("AchievementUnlocked") :: RemoteEvent
+local function R(name: string): RemoteEvent
+	return remoteFolder:WaitForChild(name) :: RemoteEvent
+end
 
--- Session run state (not persisted)
+local Toast = R("Toast")
+local AuraUpdate = R("AuraUpdate")
+local StatsUpdate = R("StatsUpdate")
+local FinishEv = R("Finish")
+local RestartRequest = R("RestartRequest")
+local BuyCosmetic = R("BuyCosmetic")
+local EquipCosmetic = R("EquipCosmetic")
+local CosmeticResult = R("CosmeticResult")
+local AchievementUnlocked = R("AchievementUnlocked")
+local QuestUpdate = R("QuestUpdate")
+local ClaimQuest = R("ClaimQuest")
+local QuestResult = R("QuestResult")
+local WeatherUpdate = R("WeatherUpdate")
+local LeaderboardUpdate = R("LeaderboardUpdate")
+local RequestLeaderboard = R("RequestLeaderboard")
+local OfflineReward = R("OfflineReward")
+local SettingsUpdate = R("SettingsUpdate")
+local TutorialState = R("TutorialState")
+local TutorialComplete = R("TutorialComplete")
+local PlaySound = R("PlaySound")
+
+local restartLimiter = RateLimiter.new(3, 4)
+local shopLimiter = RateLimiter.new(8, 3)
+local claimLimiter = RateLimiter.new(6, 3)
+
 type RunState = {
 	checkpointIndex: number,
 	checkpointCF: CFrame?,
@@ -41,12 +67,18 @@ type RunState = {
 	comboExpire: number,
 	lastKill: number,
 	lastRestart: number,
+	sessionStart: number,
+	playMinuteAcc: number,
 }
 
 local runs: { [number]: RunState } = {}
 
 local function toast(player: Player, text: string, kind: string?)
 	Toast:FireClient(player, text, kind or "info")
+end
+
+local function sfx(player: Player, name: string)
+	PlaySound:FireClient(player, name)
 end
 
 local function ensureLeaderstats(player: Player, profile)
@@ -68,6 +100,15 @@ local function ensureLeaderstats(player: Player, profile)
 	stat("Aura", profile.aura)
 	stat("Coins", profile.coins)
 	stat("Finishes", profile.totalFinishes)
+	stat("Streak", profile.loginStreak or 0)
+end
+
+local function pushQuests(player: Player)
+	local profile = PlayerData.Get(player)
+	if not profile then
+		return
+	end
+	QuestUpdate:FireClient(player, QuestService.Snapshot(profile))
 end
 
 local function pushStats(player: Player)
@@ -83,6 +124,9 @@ local function pushStats(player: Player)
 		snap.runTime = run and (os.clock() - run.runStartClock) or 0
 		snap.finished = run and run.finished or false
 		snap.combo = run and run.combo or 0
+		snap.weather = WeatherService.GetMood().id
+		snap.weatherLabel = WeatherService.GetMood().label
+		snap.weatherMult = WeatherService.GetAuraMultiplier()
 		StatsUpdate:FireClient(player, snap)
 		AuraUpdate:FireClient(player, profile.aura, profile.coins)
 	end
@@ -99,6 +143,8 @@ local function newRun(): RunState
 		comboExpire = 0,
 		lastKill = 0,
 		lastRestart = 0,
+		sessionStart = os.clock(),
+		playMinuteAcc = 0,
 	}
 end
 
@@ -199,11 +245,8 @@ local function checkAchievements(player: Player)
 				rewardAura = def.rewardAura,
 				rewardCoins = def.rewardCoins,
 			})
-			toast(
-				player,
-				string.format("Achievement: %s (+%d aura)", def.name, def.rewardAura),
-				"good"
-			)
+			sfx(player, "Achievement")
+			toast(player, string.format("Achievement: %s (+%d aura)", def.name, def.rewardAura), "good")
 		end
 	end
 end
@@ -221,9 +264,12 @@ local function onKill(player: Player)
 	run.lastKill = now
 	run.combo = 0
 	profile.totalDeaths += 1
+	QuestService.AddProgress(profile, "death", 1)
 	PlayerData.MarkDirty(player)
 	checkAchievements(player)
 	pushStats(player)
+	pushQuests(player)
+	sfx(player, "Death")
 	toast(player, "Ouch — back to checkpoint", "bad")
 	teleportTo(player, getSpawnCF(run))
 end
@@ -246,11 +292,9 @@ local function bindCharacter(player: Player, char: Model)
 	if hum then
 		hum.Died:Connect(function()
 			onKill(player)
-			-- brief respawn handled by Roblox; we re-teleport on character
 		end)
 	end
 
-	-- Fall void check
 	task.spawn(function()
 		while player.Character == char do
 			local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -288,8 +332,11 @@ local function wireStageParts(stage: Instance)
 					run.checkpointIndex = idx
 					run.checkpointCF = part.CFrame
 					profile.coins += ObbyConfig.CheckpointCoinBonus
+					QuestService.AddProgress(profile, "checkpoint", 1)
 					PlayerData.MarkDirty(player)
 					pushStats(player)
+					pushQuests(player)
+					sfx(player, "Checkpoint")
 					toast(player, string.format("Checkpoint %d", idx), "good")
 				end
 			end)
@@ -335,13 +382,14 @@ local function wireStageParts(stage: Instance)
 
 				local comboBonus = math.max(0, (run.combo - 1) * ObbyConfig.ComboBonusPerStep)
 				local mult, tier = RNG.OrbMultiplier()
-				local gain = (ObbyConfig.OrbAuraValue + comboBonus) * mult
+				local weatherMult = WeatherService.GetAuraMultiplier()
+				local gain = math.floor((ObbyConfig.OrbAuraValue + comboBonus) * mult * weatherMult)
 				profile.aura += gain
 				profile.coins += ObbyConfig.OrbCoinValue * (mult > 1 and mult or 1)
 				profile.totalOrbs += 1
+				QuestService.AddProgress(profile, "orb", 1)
 				PlayerData.MarkDirty(player)
 
-				-- Hide orb for this session visually for all (simple)
 				part.Transparency = 1
 				part.CanTouch = false
 				local light = part:FindFirstChildWhichIsA("PointLight")
@@ -351,12 +399,18 @@ local function wireStageParts(stage: Instance)
 
 				checkAchievements(player)
 				pushStats(player)
+				pushQuests(player)
+				sfx(player, "OrbPickup")
+
 				local bits = { string.format("+%d Aura", gain) }
 				if run.combo > 1 then
 					table.insert(bits, string.format("x%d combo", run.combo))
 				end
 				if mult > 1 then
 					table.insert(bits, tier .. " x" .. tostring(mult))
+				end
+				if weatherMult > 1 then
+					table.insert(bits, WeatherService.GetMood().label)
 				end
 				toast(player, table.concat(bits, " · "), "aura")
 			end)
@@ -380,14 +434,18 @@ local function wireStageParts(stage: Instance)
 				profile.totalFinishes += 1
 				profile.aura += ObbyConfig.FinishAuraBonus
 				profile.coins += ObbyConfig.FinishCoinBonus
+				QuestService.AddProgress(profile, "finish", 1)
 				local isBest = false
 				if profile.bestTime == nil or elapsed < profile.bestTime then
 					profile.bestTime = elapsed
 					isBest = true
+					OrderedStats.Submit(player, elapsed)
 				end
 				PlayerData.MarkDirty(player)
 				checkAchievements(player)
 				pushStats(player)
+				pushQuests(player)
+				sfx(player, "Finish")
 				FinishEv:FireClient(player, {
 					time = elapsed,
 					bestTime = profile.bestTime,
@@ -399,11 +457,7 @@ local function wireStageParts(stage: Instance)
 				})
 				toast(
 					player,
-					string.format(
-						"Stage clear! %.2fs%s",
-						elapsed,
-						isBest and " — NEW BEST" or ""
-					),
+					string.format("Stage clear! %.2fs%s", elapsed, isBest and " — NEW BEST" or ""),
 					"good"
 				)
 				PlayerData.Save(player)
@@ -412,18 +466,59 @@ local function wireStageParts(stage: Instance)
 	end
 end
 
--- Build stage
 local stageFolder = StageBuilder.Build()
 wireStageParts(stageFolder)
 print("[ObbyServer] Stage wired")
 
--- Player lifecycle
+WeatherService.Start(function(mood)
+	WeatherUpdate:FireAllClients({
+		id = mood.id,
+		label = mood.label,
+		auraMult = mood.auraMult,
+	})
+	for _, player in Players:GetPlayers() do
+		toast(player, "Weather: " .. mood.label .. (mood.auraMult > 1 and string.format(" (x%.2f Aura)", mood.auraMult) or ""), "info")
+	end
+end)
+
 local function onPlayer(player: Player)
 	local profile = PlayerData.Load(player)
 	runs[player.UserId] = newRun()
+
+	-- Offline drip
+	local offline = OfflineEarnings.Collect(profile)
+	if offline then
+		OfflineReward:FireClient(player, offline)
+		toast(
+			player,
+			string.format("Welcome back! +%d Aura, +%d Coins for being away %s", offline.aura, offline.coins, offline.label),
+			"aura"
+		)
+	end
+
+	local streakInfo = QuestService.OnJoin(profile)
+	PlayerData.MarkDirty(player)
 	ensureLeaderstats(player, profile)
 	pushStats(player)
-	toast(player, "Welcome to " .. ObbyConfig.GameName, "info")
+	pushQuests(player)
+
+	if streakInfo.rewardAura > 0 then
+		toast(
+			player,
+			string.format("Day %d streak! +%d Aura, +%d Coins", streakInfo.streak, streakInfo.rewardAura, streakInfo.rewardCoins),
+			"good"
+		)
+	else
+		toast(player, "Welcome to " .. ObbyConfig.GameName .. " · streak x" .. tostring(streakInfo.streak), "info")
+	end
+
+	if not profile.tutorialDone then
+		TutorialState:FireClient(player, false)
+	end
+
+	-- current weather
+	local mood = WeatherService.GetMood()
+	WeatherUpdate:FireClient(player, { id = mood.id, label = mood.label, auraMult = mood.auraMult })
 
 	player.CharacterAdded:Connect(function(char)
 		bindCharacter(player, char)
@@ -439,6 +534,10 @@ for _, p in Players:GetPlayers() do
 end
 
 Players.PlayerRemoving:Connect(function(player)
+	local profile = PlayerData.Get(player)
+	if profile then
+		OfflineEarnings.Touch(profile)
+	end
 	PlayerData.Release(player)
 	runs[player.UserId] = nil
 end)
@@ -450,8 +549,31 @@ game:BindToClose(function()
 	task.wait(2)
 end)
 
--- Restart run (from finish panel or button)
+-- Playtime tick for daily quest
+task.spawn(function()
+	while true do
+		task.wait(30)
+		for _, player in Players:GetPlayers() do
+			local run = runs[player.UserId]
+			local profile = PlayerData.Get(player)
+			if run and profile then
+				run.playMinuteAcc += 0.5
+				if run.playMinuteAcc >= 1 then
+					local mins = math.floor(run.playMinuteAcc)
+					run.playMinuteAcc -= mins
+					QuestService.AddProgress(profile, "play_minutes", mins)
+					PlayerData.MarkDirty(player)
+					pushQuests(player)
+				end
+			end
+		end
+	end
+end)
+
 RestartRequest.OnServerEvent:Connect(function(player)
+	if not restartLimiter:Allow("r_" .. player.UserId) then
+		return
+	end
 	local run = runs[player.UserId]
 	if not run then
 		return
@@ -460,16 +582,10 @@ RestartRequest.OnServerEvent:Connect(function(player)
 	if now - run.lastRestart < ObbyConfig.RestartCooldownSec then
 		return
 	end
-	run.lastRestart = now
-
-	-- Reset run progress but keep meta profile
 	local fresh = newRun()
 	fresh.lastRestart = now
 	runs[player.UserId] = fresh
 
-	-- Restore orbs visibility for everyone is heavy; rebuild stage orbs only
-	-- Simple approach: re-enable orbs that this player needs on a personal flag —
-	-- for solo, restore all orbs in stage.
 	local stage = workspace:FindFirstChild(ObbyConfig.StageFolderName)
 	if stage then
 		for _, part in stage:GetDescendants() do
@@ -485,6 +601,7 @@ RestartRequest.OnServerEvent:Connect(function(player)
 	end
 
 	pushStats(player)
+	sfx(player, "Whoosh")
 	toast(player, "Run reset — go!", "info")
 	if player.Character then
 		teleportTo(player, getSpawnCF(fresh))
@@ -495,6 +612,9 @@ RestartRequest.OnServerEvent:Connect(function(player)
 end)
 
 BuyCosmetic.OnServerEvent:Connect(function(player, trailId)
+	if not shopLimiter:Allow("buy_" .. player.UserId) then
+		return
+	end
 	if type(trailId) ~= "string" then
 		return
 	end
@@ -521,12 +641,16 @@ BuyCosmetic.OnServerEvent:Connect(function(player, trailId)
 	PlayerData.MarkDirty(player)
 	checkAchievements(player)
 	pushStats(player)
+	sfx(player, "Purchase")
 	CosmeticResult:FireClient(player, true, "Purchased " .. def.name)
 	toast(player, "Unlocked " .. def.name, "good")
 	PlayerData.Save(player)
 end)
 
 EquipCosmetic.OnServerEvent:Connect(function(player, trailId)
+	if not shopLimiter:Allow("eq_" .. player.UserId) then
+		return
+	end
 	if type(trailId) ~= "string" then
 		return
 	end
@@ -543,7 +667,76 @@ EquipCosmetic.OnServerEvent:Connect(function(player, trailId)
 	PlayerData.MarkDirty(player)
 	applyTrail(player)
 	pushStats(player)
+	sfx(player, "Equip")
 	toast(player, "Equipped " .. def.name, "info")
+end)
+
+ClaimQuest.OnServerEvent:Connect(function(player, questId)
+	if not claimLimiter:Allow("cq_" .. player.UserId) then
+		return
+	end
+	if type(questId) ~= "string" then
+		return
+	end
+	local profile = PlayerData.Get(player)
+	if not profile then
+		return
+	end
+	local ok, msg, a, c = QuestService.TryClaim(profile, questId)
+	if ok then
+		PlayerData.MarkDirty(player)
+		pushStats(player)
+		pushQuests(player)
+		sfx(player, "Purchase")
+		QuestResult:FireClient(player, true, msg, a, c)
+		toast(player, msg .. string.format(" (+%d Aura)", a or 0), "good")
+		PlayerData.Save(player)
+	else
+		QuestResult:FireClient(player, false, msg)
+		toast(player, tostring(msg), "warn")
+	end
+end)
+
+RequestLeaderboard.OnServerEvent:Connect(function(player)
+	if not shopLimiter:Allow("lb_" .. player.UserId) then
+		return
+	end
+	local rows = OrderedStats.GetTop(10)
+	LeaderboardUpdate:FireClient(player, rows)
+end)
+
+SettingsUpdate.OnServerEvent:Connect(function(player, settings)
+	if type(settings) ~= "table" then
+		return
+	end
+	local profile = PlayerData.Get(player)
+	if not profile then
+		return
+	end
+	if type(profile.settings) ~= "table" then
+		profile.settings = {}
+	end
+	if settings.music ~= nil then
+		profile.settings.music = settings.music == true
+	end
+	if settings.sfx ~= nil then
+		profile.settings.sfx = settings.sfx == true
+	end
+	if settings.reduceFx ~= nil then
+		profile.settings.reduceFx = settings.reduceFx == true
+	end
+	PlayerData.MarkDirty(player)
+	pushStats(player)
+end)
+
+TutorialComplete.OnServerEvent:Connect(function(player)
+	local profile = PlayerData.Get(player)
+	if not profile then
+		return
+	end
+	profile.tutorialDone = true
+	PlayerData.MarkDirty(player)
+	toast(player, "Tutorial done — good luck!", "good")
 end)
 
 print("[ObbyServer] Ready —", ObbyConfig.GameName, "v" .. ObbyConfig.Version)

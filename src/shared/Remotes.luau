@@ -1,4 +1,4 @@
--- Ensures all RemoteEvents / RemoteFunctions exist (server creates, client waits).
+-- Ensures all RemoteEvents exist (server creates, client waits).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -9,14 +9,26 @@ local FOLDER_NAME = "ObbyRemotes"
 local EVENT_NAMES = {
 	"Toast",
 	"AuraUpdate",
-	"StatsUpdate", -- full snapshot for HUD
+	"StatsUpdate",
 	"Finish",
 	"RestartRequest",
 	"BuyCosmetic",
 	"EquipCosmetic",
 	"CosmeticResult",
 	"AchievementUnlocked",
-	"OpenShop", -- client-only convenience; server may ignore
+	"OpenShop",
+	-- v0.3
+	"QuestUpdate",
+	"ClaimQuest",
+	"QuestResult",
+	"WeatherUpdate",
+	"LeaderboardUpdate",
+	"RequestLeaderboard",
+	"OfflineReward",
+	"SettingsUpdate",
+	"TutorialState",
+	"TutorialComplete",
+	"PlaySound",
 }
 
 local function getFolder(): Folder

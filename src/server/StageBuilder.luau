@@ -295,13 +295,8 @@ function StageBuilder.Build(): Folder
 	setTag(voidKill, ObbyConfig.KillTag)
 	voidKill.Parent = folder
 
-	-- Lighting nudge
-	local lighting = game:GetService("Lighting")
-	lighting.Brightness = 2
-	lighting.Ambient = Color3.fromRGB(120, 120, 140)
-	lighting.OutdoorAmbient = Color3.fromRGB(140, 140, 160)
-	lighting.ClockTime = 14
-	lighting.GlobalShadows = false
+	-- Lighting is owned by WeatherService (mood cycles).
+	game:GetService("Lighting").GlobalShadows = false
 
 	StageBuilder.StartMovers(folder)
 	print("[StageBuilder] Stage 1 built — look for green StartPad at origin")
