@@ -2,67 +2,142 @@
   "name": "AuraFarmObby",
   "tree": {
     "$className": "DataModel",
-
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
       "Shared": {
         "$className": "Folder",
-        "ObbyConfig": { "$path": "src/shared/ObbyConfig.luau" },
-        "CosmeticsCatalog": { "$path": "src/shared/CosmeticsCatalog.luau" },
-        "Achievements": { "$path": "src/shared/Achievements.luau" },
-        "Remotes": { "$path": "src/shared/Remotes.luau" },
-        "RNG": { "$path": "src/shared/RNG.luau" },
-        "TimeUtil": { "$path": "src/shared/TimeUtil.luau" },
-        "RateLimiter": { "$path": "src/shared/RateLimiter.luau" },
-        "FormatUtil": { "$path": "src/shared/FormatUtil.luau" },
-        "DailyQuests": { "$path": "src/shared/DailyQuests.luau" },
-        "SoundCatalog": { "$path": "src/shared/SoundCatalog.luau" },
-        "TutorialConfig": { "$path": "src/shared/TutorialConfig.luau" },
-        "AnimationConfig": { "$path": "src/shared/AnimationConfig.luau" },
-        "MovementConfig": { "$path": "src/shared/MovementConfig.luau" },
-        "Hello": { "$path": "src/shared/Hello.luau" }
+        "ObbyConfig": {
+          "$path": "src/shared/ObbyConfig.luau"
+        },
+        "CosmeticsCatalog": {
+          "$path": "src/shared/CosmeticsCatalog.luau"
+        },
+        "Achievements": {
+          "$path": "src/shared/Achievements.luau"
+        },
+        "Remotes": {
+          "$path": "src/shared/Remotes.luau"
+        },
+        "RNG": {
+          "$path": "src/shared/RNG.luau"
+        },
+        "TimeUtil": {
+          "$path": "src/shared/TimeUtil.luau"
+        },
+        "RateLimiter": {
+          "$path": "src/shared/RateLimiter.luau"
+        },
+        "FormatUtil": {
+          "$path": "src/shared/FormatUtil.luau"
+        },
+        "DailyQuests": {
+          "$path": "src/shared/DailyQuests.luau"
+        },
+        "SoundCatalog": {
+          "$path": "src/shared/SoundCatalog.luau"
+        },
+        "TutorialConfig": {
+          "$path": "src/shared/TutorialConfig.luau"
+        },
+        "AnimationConfig": {
+          "$path": "src/shared/AnimationConfig.luau"
+        },
+        "MovementConfig": {
+          "$path": "src/shared/MovementConfig.luau"
+        }
       }
     },
-
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "ObbyServer": { "$path": "src/server/ObbyServer.server.luau" },
-      "StageBuilder": { "$path": "src/server/StageBuilder.luau" },
-      "TerrainGenerator": { "$path": "src/server/TerrainGenerator.luau" },
-      "PlayerData": { "$path": "src/server/PlayerData.luau" },
-      "TrailService": { "$path": "src/server/TrailService.luau" },
-      "QuestService": { "$path": "src/server/QuestService.luau" },
-      "WeatherService": { "$path": "src/server/WeatherService.luau" },
-      "OrderedStats": { "$path": "src/server/OrderedStats.luau" },
-      "OfflineEarnings": { "$path": "src/server/OfflineEarnings.luau" },
-      "HelloServer": { "$path": "src/server/HelloServer.server.luau" }
+      "ObbyServer": {
+        "$path": "src/server/ObbyServer.server.luau"
+      },
+      "StageBuilder": {
+        "$path": "src/server/StageBuilder.luau"
+      },
+      "TerrainGenerator": {
+        "$path": "src/server/TerrainGenerator.luau"
+      },
+      "PlayerData": {
+        "$path": "src/server/PlayerData.luau"
+      },
+      "TrailService": {
+        "$path": "src/server/TrailService.luau"
+      },
+      "QuestService": {
+        "$path": "src/server/QuestService.luau"
+      },
+      "WeatherService": {
+        "$path": "src/server/WeatherService.luau"
+      },
+      "OrderedStats": {
+        "$path": "src/server/OrderedStats.luau"
+      },
+      "OfflineEarnings": {
+        "$path": "src/server/OfflineEarnings.luau"
+      },
+      "SoftShutdown": {
+        "$path": "src/server/SoftShutdown.luau"
+      },
+      "Leaderstats": {
+        "$path": "src/server/Leaderstats.luau"
+      }
     },
-
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
-        "ObbyClient": { "$path": "src/client/ObbyClient.client.luau" },
-        "PlayerClient": { "$path": "src/client/PlayerClient.client.luau" },
-        "AnimationSystem": { "$path": "src/client/AnimationSystem.luau" },
-        "CosmeticsSystem": { "$path": "src/client/CosmeticsSystem.luau" },
-        "GraphicsSystem": { "$path": "src/client/GraphicsSystem.luau" },
-        "MovementSystem": { "$path": "src/client/MovementSystem.luau" },
-        "HelloClient": { "$path": "src/client/HelloClient.client.luau" }
+        "LoadingScreen": {
+          "$path": "src/client/LoadingScreen.client.luau"
+        },
+        "ObbyClient": {
+          "$path": "src/client/ObbyClient.client.luau"
+        },
+        "PlayerClient": {
+          "$path": "src/client/PlayerClient.client.luau"
+        },
+        "MobileControls": {
+          "$path": "src/client/MobileControls.client.luau"
+        },
+        "AnimationSystem": {
+          "$path": "src/client/AnimationSystem.luau"
+        },
+        "CosmeticsSystem": {
+          "$path": "src/client/CosmeticsSystem.luau"
+        },
+        "GraphicsSystem": {
+          "$path": "src/client/GraphicsSystem.luau"
+        },
+        "MovementSystem": {
+          "$path": "src/client/MovementSystem.luau"
+        }
       }
     },
-
     "Workspace": {
       "$className": "Workspace",
       "$properties": {
         "FilteringEnabled": true
       }
     },
-
     "Lighting": {
-      "$className": "Lighting"
+      "$className": "Lighting",
+      "$properties": {
+        "Technology": "ShadowMap",
+        "Brightness": 2,
+        "Ambient": [
+          0.3,
+          0.3,
+          0.4
+        ],
+        "OutdoorAmbient": [
+          0.4,
+          0.4,
+          0.5
+        ],
+        "GlobalShadows": true,
+        "ClockTime": 14
+      }
     },
-
     "SoundService": {
       "$className": "SoundService",
       "$properties": {

@@ -4,7 +4,7 @@
 local ObbyConfig = {}
 
 ObbyConfig.GameName = "Aura Farm Obby"
-ObbyConfig.Version = "0.3.0"
+ObbyConfig.Version = "0.4.0"
 
 -- Folder / tag names used in Workspace
 ObbyConfig.StageFolderName = "AuraFarmStage1"
@@ -33,9 +33,11 @@ ObbyConfig.OfflineCoinsPerHour = 4
 
 -- Gameplay
 ObbyConfig.RestartCooldownSec = 1.25
+ObbyConfig.MinFinishTimeSec = 8 -- reject impossibly fast clears
+ObbyConfig.MinCheckpointForFinish = 1 -- must touch at least one CP (0 = start only stages)
 ObbyConfig.KillDebounceSec = 0.85
-ObbyConfig.FallY = -30
-ObbyConfig.StartCFrame = CFrame.new(0, 18, 0)
+ObbyConfig.FallY = -5
+ObbyConfig.StartCFrame = CFrame.new(0, 28, 6)
 
 -- DataStore
 ObbyConfig.DataStoreName = "AuraFarmObby_v2"

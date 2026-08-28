@@ -2,7 +2,7 @@
 
 Solo fair-skill obby: clear Stage 1, farm Aura, unlock trails, chase best times, hit dailies.
 
-**v0.3** pulls a *lot* more from reference games — not just cosmetics + RNG.
+**v0.4** pulls a *lot* more from reference games — not just cosmetics + RNG.
 
 ## Integrated from other repos
 
@@ -80,3 +80,15 @@ src/client/   ObbyClient HUD + PlayerClient (anim / aura skins / graphics)
 - Not double-run: IntegratedClient / ObbyManager are no-ops (logic in PlayerClient + ObbyServer)
 
 Repo: https://github.com/mcallisterganen-dotcom/AuraFarmObby
+
+
+## Publish
+See **[PUBLISH.md](PUBLISH.md)** for the full go-live checklist (DataStores, playtest matrix, anti-cheat, Studio settings).
+
+### v0.4 production polish
+- Loading screen
+- Mobile Sprint / Crouch / Slide buttons
+- Finish anti-cheat (distance + min time + checkpoint gate)
+- Leaderstats BestCs (best time in centiseconds)
+- Soft DataStore flush on server close
+- Your upgraded StageBuilder + TerrainGenerator kept

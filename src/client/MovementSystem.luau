@@ -61,6 +61,21 @@ function MovementSystem.new(character: Model, humanoid: Humanoid, rootPart: Base
 		end
 	end)
 
+	-- Mobile / on-screen controls (attributes set by MobileControls)
+	local player = game:GetService("Players").LocalPlayer
+	self._attr = player.AttributeChanged:Connect(function(name)
+		if self._destroyed then
+			return
+		end
+		if name == "AF_Sprint" then
+			self:SetSprint(player:GetAttribute("AF_Sprint") == true)
+		elseif name == "AF_Crouch" then
+			self:SetCrouch(player:GetAttribute("AF_Crouch") == true)
+		elseif name == "AF_SlidePulse" and player:GetAttribute("AF_SlidePulse") == true then
+			self:TrySlide()
+		end
+	end)
+
 	self._hb = RunService.Heartbeat:Connect(function()
 		self:_tick()
 	end)
@@ -197,6 +212,9 @@ function MovementSystem:Destroy()
 	end
 	if self._hb then
 		self._hb:Disconnect()
+	end
+	if self._attr then
+		self._attr:Disconnect()
 	end
 	if self.humanoid then
 		self.humanoid.WalkSpeed = MovementConfig.BaseWalkSpeed

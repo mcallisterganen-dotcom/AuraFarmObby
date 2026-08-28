@@ -102,6 +102,12 @@ local function ensureLeaderstats(player: Player, profile)
 	stat("Coins", profile.coins)
 	stat("Finishes", profile.totalFinishes)
 	stat("Streak", profile.loginStreak or 0)
+	-- Best shown as centiseconds for IntValue leaderboard (e.g. 1234 = 12.34s); 0 = none
+	local bestCs = 0
+	if profile.bestTime and profile.bestTime > 0 then
+		bestCs = math.floor(profile.bestTime * 100 + 0.5)
+	end
+	stat("BestCs", bestCs)
 end
 
 local function pushQuests(player: Player)
@@ -430,8 +436,29 @@ local function wireStageParts(stage: Instance)
 				if not run or not profile or run.finished then
 					return
 				end
-				run.finished = true
+				-- Anti-cheat: must be near the finish pad + take a realistic amount of time
+				local hrp = char:FindFirstChild("HumanoidRootPart")
+				if not hrp or not hrp:IsA("BasePart") then
+					return
+				end
+				local dist = (hrp.Position - part.Position).Magnitude
+				if dist > 18 then
+					warn("[ObbyServer] Finish rejected (distance)", player.Name, dist)
+					return
+				end
 				local elapsed = os.clock() - run.runStartClock
+				local minT = ObbyConfig.MinFinishTimeSec or 8
+				if elapsed < minT then
+					toast(player, "Finish too fast — try a fair run", "bad")
+					warn("[ObbyServer] Finish rejected (time)", player.Name, elapsed)
+					return
+				end
+				local minCp = ObbyConfig.MinCheckpointForFinish or 0
+				if run.checkpointIndex < minCp then
+					toast(player, "Hit more checkpoints first", "bad")
+					return
+				end
+				run.finished = true
 				profile.totalFinishes += 1
 				profile.aura += ObbyConfig.FinishAuraBonus
 				profile.coins += ObbyConfig.FinishCoinBonus
