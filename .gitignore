@@ -13,3 +13,6 @@ Thumbs.db
 
 # Sourcemap (optional local gen)
 sourcemap.json
+
+# Local clones of reference games (not part of this project)
+_refs/

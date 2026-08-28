@@ -9,17 +9,41 @@
         "$className": "Folder",
         "ObbyConfig": {
           "$path": "src/shared/ObbyConfig.luau"
+        },
+        "CosmeticsCatalog": {
+          "$path": "src/shared/CosmeticsCatalog.luau"
+        },
+        "Achievements": {
+          "$path": "src/shared/Achievements.luau"
+        },
+        "Remotes": {
+          "$path": "src/shared/Remotes.luau"
+        },
+        "RNG": {
+          "$path": "src/shared/RNG.luau"
+        },
+        "Hello": {
+          "$path": "src/shared/Hello.luau"
         }
       }
     },
 
     "ServerScriptService": {
       "$className": "ServerScriptService",
+      "ObbyServer": {
+        "$path": "src/server/ObbyServer.server.luau"
+      },
       "StageBuilder": {
         "$path": "src/server/StageBuilder.luau"
       },
-      "ObbyServer": {
-        "$path": "src/server/ObbyServer.server.luau"
+      "PlayerData": {
+        "$path": "src/server/PlayerData.luau"
+      },
+      "TrailService": {
+        "$path": "src/server/TrailService.luau"
+      },
+      "HelloServer": {
+        "$path": "src/server/HelloServer.server.luau"
       }
     },
 
@@ -29,6 +53,9 @@
         "$className": "StarterPlayerScripts",
         "ObbyClient": {
           "$path": "src/client/ObbyClient.client.luau"
+        },
+        "HelloClient": {
+          "$path": "src/client/HelloClient.client.luau"
         }
       }
     },
@@ -41,14 +68,7 @@
     },
 
     "Lighting": {
-      "$className": "Lighting",
-      "$properties": {
-        "Ambient": [0.4, 0.4, 0.45],
-        "Brightness": 2,
-        "GlobalShadows": false,
-        "OutdoorAmbient": [0.5, 0.5, 0.55],
-        "ClockTime": 14
-      }
+      "$className": "Lighting"
     },
 
     "SoundService": {

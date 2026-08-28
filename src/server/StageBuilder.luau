@@ -1,4 +1,5 @@
 -- Builds Stage 1 at runtime so the place works even with an empty baseplate.
+-- Parts use Attribute "Tag" so ObbyServer can wire touch logic consistently.
 
 local ObbyConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("ObbyConfig"))
 
@@ -16,11 +17,11 @@ local function part(props: { [string]: any }): Part
 	return p
 end
 
-local function tag(instance: Instance, name: string)
-	instance:SetAttribute(name, true)
+local function setTag(instance: Instance, tagName: string)
+	instance:SetAttribute("Tag", tagName)
 end
 
-function StageBuilder.build(): Folder
+function StageBuilder.Build(): Folder
 	local existing = workspace:FindFirstChild(ObbyConfig.StageFolderName)
 	if existing then
 		existing:Destroy()
@@ -39,7 +40,6 @@ function StageBuilder.build(): Folder
 	folder.Name = ObbyConfig.StageFolderName
 	folder.Parent = workspace
 
-	-- Keep stage near world origin / default camera so it's obvious in Play
 	local Y = 8
 	local pathColor = Color3.fromRGB(100, 170, 255)
 	local accent = Color3.fromRGB(255, 170, 60)
@@ -51,24 +51,23 @@ function StageBuilder.build(): Folder
 		Position = Vector3.new(0, Y, 0),
 		Color = Color3.fromRGB(80, 200, 120),
 	})
-	tag(startPad, ObbyConfig.StartTag)
+	setTag(startPad, ObbyConfig.StartTag)
 	startPad.Parent = folder
 
-	-- Real spawn on the pad (must be collidable SpawnLocation for Studio)
+	-- Real spawn on the pad
 	local spawn = Instance.new("SpawnLocation")
-	spawn.Name = "StageSpawn"
+	spawn.Name = ObbyConfig.StartSpawnName
 	spawn.Size = Vector3.new(10, 1, 10)
 	spawn.Position = Vector3.new(0, Y + 1.5, 0)
 	spawn.Anchored = true
 	spawn.Duration = 0
 	spawn.Neutral = true
 	spawn.Enabled = true
-	spawn.Duration = 0
 	spawn.Color = Color3.fromRGB(100, 255, 140)
 	spawn.Material = Enum.Material.Neon
 	spawn.Parent = folder
 
-	-- Title billboard so you know the game loaded
+	-- Title billboard
 	local titlePart = part({
 		Name = "TitleBillboard",
 		Size = Vector3.new(4, 4, 4),
@@ -79,7 +78,6 @@ function StageBuilder.build(): Folder
 	titlePart.Parent = folder
 	local bb = Instance.new("BillboardGui")
 	bb.Size = UDim2.fromOffset(420, 80)
-	bb.StudsOffset = Vector3.new(0, 0, 0)
 	bb.AlwaysOnTop = true
 	bb.Parent = titlePart
 	local title = Instance.new("TextLabel")
@@ -110,8 +108,8 @@ function StageBuilder.build(): Folder
 		Position = Vector3.new(0, Y, -86),
 		Color = Color3.fromRGB(255, 220, 80),
 	})
-	tag(cp1, ObbyConfig.CheckpointTag)
-	cp1:SetAttribute("CheckpointIndex", 1)
+	setTag(cp1, ObbyConfig.CheckpointTag)
+	cp1:SetAttribute("Index", 1)
 	cp1.Parent = folder
 	local cp1Beacon = part({
 		Name = "Checkpoint1Beacon",
@@ -141,7 +139,7 @@ function StageBuilder.build(): Folder
 		Color = Color3.fromRGB(220, 50, 50),
 		Material = Enum.Material.Neon,
 	})
-	tag(kill1, ObbyConfig.KillTag)
+	setTag(kill1, ObbyConfig.KillTag)
 	kill1.Parent = folder
 
 	-- Checkpoint 2
@@ -151,8 +149,8 @@ function StageBuilder.build(): Folder
 		Position = Vector3.new(0, Y + 3, -148),
 		Color = Color3.fromRGB(255, 220, 80),
 	})
-	tag(cp2, ObbyConfig.CheckpointTag)
-	cp2:SetAttribute("CheckpointIndex", 2)
+	setTag(cp2, ObbyConfig.CheckpointTag)
+	cp2:SetAttribute("Index", 2)
 	cp2.Parent = folder
 
 	-- Section 3: rising stairs + gap
@@ -174,7 +172,7 @@ function StageBuilder.build(): Folder
 		Color = Color3.fromRGB(255, 100, 180),
 		Material = Enum.Material.Neon,
 	})
-	tag(mover, ObbyConfig.MoverTag)
+	setTag(mover, ObbyConfig.MoverTag)
 	mover:SetAttribute("MoverId", 1)
 	mover.Parent = folder
 
@@ -194,7 +192,7 @@ function StageBuilder.build(): Folder
 		Color = Color3.fromRGB(220, 50, 50),
 		Material = Enum.Material.Neon,
 	})
-	tag(kill2, ObbyConfig.KillTag)
+	setTag(kill2, ObbyConfig.KillTag)
 	kill2.Parent = folder
 
 	-- Checkpoint 3
@@ -204,8 +202,8 @@ function StageBuilder.build(): Folder
 		Position = Vector3.new(12, Y + 15, -224),
 		Color = Color3.fromRGB(255, 220, 80),
 	})
-	tag(cp3, ObbyConfig.CheckpointTag)
-	cp3:SetAttribute("CheckpointIndex", 3)
+	setTag(cp3, ObbyConfig.CheckpointTag)
+	cp3:SetAttribute("Index", 3)
 	cp3.Parent = folder
 
 	-- Final stretch
@@ -227,7 +225,7 @@ function StageBuilder.build(): Folder
 		Color = Color3.fromRGB(255, 230, 60),
 		Material = Enum.Material.Neon,
 	})
-	tag(finish, ObbyConfig.FinishTag)
+	setTag(finish, ObbyConfig.FinishTag)
 	finish.Parent = folder
 
 	local finishWall = part({
@@ -257,24 +255,25 @@ function StageBuilder.build(): Folder
 		Vector3.new(-4, Y + 5, -108),
 		Vector3.new(4, Y + 5, -130),
 		Vector3.new(0, Y + 10, -168),
-		Vector3.new(0, Y + 16, -192),
-		Vector3.new(12, Y + 18, -208),
-		Vector3.new(12, Y + 18, -258),
+		Vector3.new(0, Y + 18, -190),
+		Vector3.new(12, Y + 18, -240),
+		Vector3.new(12, Y + 18, -265),
 	}
 
 	for i, pos in orbPositions do
 		local orb = part({
 			Name = "AuraOrb_" .. i,
 			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(2.2, 2.2, 2.2),
+			Size = Vector3.new(2.4, 2.4, 2.4),
 			Position = pos,
 			Color = Color3.fromRGB(190, 130, 255),
 			Material = Enum.Material.Neon,
 			CanCollide = false,
 			Transparency = 0.15,
 		})
-		tag(orb, ObbyConfig.OrbTag)
-		orb:SetAttribute("OrbId", i)
+		setTag(orb, ObbyConfig.OrbTag)
+		orb:SetAttribute("OrbId", "orb_" .. i)
+		orb:SetAttribute("BaseTransparency", 0.15)
 		orb.Parent = folder
 
 		local light = Instance.new("PointLight")
@@ -284,7 +283,7 @@ function StageBuilder.build(): Folder
 		light.Parent = orb
 	end
 
-	-- Collidable void slab under the course (falls always count)
+	-- Collidable void slab under the course
 	local voidKill = part({
 		Name = "VoidKill",
 		Size = Vector3.new(300, 2, 500),
@@ -293,10 +292,10 @@ function StageBuilder.build(): Folder
 		Material = Enum.Material.SmoothPlastic,
 		Transparency = 0.25,
 	})
-	tag(voidKill, ObbyConfig.KillTag)
+	setTag(voidKill, ObbyConfig.KillTag)
 	voidKill.Parent = folder
 
-	-- Lighting nudge for classic look
+	-- Lighting nudge
 	local lighting = game:GetService("Lighting")
 	lighting.Brightness = 2
 	lighting.Ambient = Color3.fromRGB(120, 120, 140)
@@ -304,11 +303,12 @@ function StageBuilder.build(): Folder
 	lighting.ClockTime = 14
 	lighting.GlobalShadows = false
 
+	StageBuilder.StartMovers(folder)
 	print("[StageBuilder] Stage 1 built — look for green StartPad at origin")
 	return folder
 end
 
-function StageBuilder.startMovers(folder: Folder)
+function StageBuilder.StartMovers(folder: Folder)
 	local mover = folder:FindFirstChild("Mover1")
 	if not mover or not mover:IsA("BasePart") then
 		return
