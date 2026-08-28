@@ -81,7 +81,7 @@ function ParkourKit.Light(parent: Instance, pos: Vector3, color: Color3, brightn
 	return a
 end
 
--- Main run pad: dark plastic body + neon EDGE only (not the whole floor)
+-- Main run pad: matte dark body + subtle rim (NOT bright neon — must read feet)
 function ParkourKit.Pad(
 	parent: Instance,
 	at: Vector3,
@@ -95,22 +95,22 @@ function ParkourKit.Pad(
 		Size = size,
 		Position = at,
 		Color = theme.path,
-		Material = AuraTheme.Materials.Path,
-		Friction = 1.2,
+		Material = Enum.Material.SmoothPlastic,
+		Friction = 1.25,
 	})
-	-- edge ring (non-colliding neon lip)
+	-- Soft rim: slightly lighter plastic, mostly transparent — no blinding neon floors
+	local rimColor = theme.path:Lerp(theme.accent, 0.35)
 	local lip = ParkourKit.Part({
 		Name = (name or "Pad") .. "Edge",
 		Parent = parent,
-		Size = Vector3.new(size.X + 0.35, 0.28, size.Z + 0.35),
-		Position = at + Vector3.new(0, size.Y * 0.5 + 0.05, 0),
-		Color = theme.accent,
-		Material = AuraTheme.Materials.PathAccent,
+		Size = Vector3.new(size.X + 0.25, 0.18, size.Z + 0.25),
+		Position = at + Vector3.new(0, size.Y * 0.5 + 0.04, 0),
+		Color = rimColor,
+		Material = Enum.Material.SmoothPlastic,
 		CanCollide = false,
-		Transparency = 0.15,
+		Transparency = 0.45,
 		CastShadow = false,
 	})
-	-- skip heavy physical props on lip
 	lip.CustomPhysicalProperties = PhysicalProperties.new(0.3, 0.3, 0, 1, 1)
 	return p
 end
@@ -258,29 +258,29 @@ function ParkourKit.Checkpoint(parent: Instance, index: number, at: Vector3, the
 	pad:SetAttribute(ObbyConfig.CheckpointTag, index)
 	pad:SetAttribute("CheckpointIndex", index)
 
-	-- glowing ring
+	-- Soft ring (dim — don't wash out feet)
 	ParkourKit.Part({
 		Name = "CP" .. index .. "Ring",
 		Parent = parent,
-		Size = Vector3.new(11, 0.4, 11),
+		Size = Vector3.new(11, 0.35, 11),
 		Position = at + Vector3.new(0, 0.9, 0),
 		Color = theme.accent,
-		Material = AuraTheme.Materials.Glow,
+		Material = Enum.Material.SmoothPlastic,
 		CanCollide = false,
-		Transparency = 0.25,
+		Transparency = 0.55,
 	})
 
 	local beacon = ParkourKit.Part({
 		Name = "CP" .. index .. "Beacon",
 		Parent = parent,
-		Size = Vector3.new(1.0, 18, 1.0),
-		Position = at + Vector3.new(0, 10, 0),
+		Size = Vector3.new(0.7, 14, 0.7),
+		Position = at + Vector3.new(0, 8, 0),
 		Color = theme.accent,
 		Material = AuraTheme.Materials.Glow,
 		CanCollide = false,
-		Transparency = 0.3,
+		Transparency = 0.55,
 	})
-	ParkourKit.Light(parent, at + Vector3.new(0, 10, 0), theme.accent, 2.2, 30)
+	ParkourKit.Light(parent, at + Vector3.new(0, 8, 0), theme.accent, 0.9, 16)
 
 	local bb = Instance.new("BillboardGui")
 	bb.Name = "CPLabel"
@@ -316,42 +316,45 @@ function ParkourKit.Finish(parent: Instance, at: Vector3, theme: Theme): BasePar
 	ParkourKit.Part({
 		Name = "FinishGlow",
 		Parent = parent,
-		Size = Vector3.new(17, 0.4, 17),
+		Size = Vector3.new(17, 0.3, 17),
 		Position = at + Vector3.new(0, 1.0, 0),
 		Color = AuraTheme.Colors.Gold,
-		Material = AuraTheme.Materials.Glow,
+		Material = Enum.Material.SmoothPlastic,
 		CanCollide = false,
-		Transparency = 0.2,
+		Transparency = 0.5,
 	})
 
 	ParkourKit.Part({
 		Name = "FinishArchL",
 		Parent = parent,
-		Size = Vector3.new(1.5, 14, 1.5),
-		Position = at + Vector3.new(-8, 7, 0),
+		Size = Vector3.new(1.2, 12, 1.2),
+		Position = at + Vector3.new(-8, 6, 0),
 		Color = theme.accent,
 		Material = AuraTheme.Materials.Glow,
 		CanCollide = false,
+		Transparency = 0.35,
 	})
 	ParkourKit.Part({
 		Name = "FinishArchR",
 		Parent = parent,
-		Size = Vector3.new(1.5, 14, 1.5),
-		Position = at + Vector3.new(8, 7, 0),
+		Size = Vector3.new(1.2, 12, 1.2),
+		Position = at + Vector3.new(8, 6, 0),
 		Color = theme.accent,
 		Material = AuraTheme.Materials.Glow,
 		CanCollide = false,
+		Transparency = 0.35,
 	})
 	ParkourKit.Part({
 		Name = "FinishArchTop",
 		Parent = parent,
-		Size = Vector3.new(18, 1.5, 1.5),
-		Position = at + Vector3.new(0, 14, 0),
+		Size = Vector3.new(18, 1.2, 1.2),
+		Position = at + Vector3.new(0, 12, 0),
 		Color = AuraTheme.Colors.Gold,
 		Material = AuraTheme.Materials.Glow,
 		CanCollide = false,
+		Transparency = 0.3,
 	})
-	ParkourKit.Light(parent, at + Vector3.new(0, 12, 0), AuraTheme.Colors.Gold, 3.2, 40)
+	ParkourKit.Light(parent, at + Vector3.new(0, 10, 0), AuraTheme.Colors.Gold, 1.4, 22)
 
 	local bb = Instance.new("BillboardGui")
 	bb.Size = UDim2.fromOffset(160, 48)

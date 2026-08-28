@@ -3,7 +3,7 @@
 local ObbyConfig = {}
 
 ObbyConfig.GameName = "Aura Farm Obby"
-ObbyConfig.Version = "0.6.0"
+ObbyConfig.Version = "0.6.1"
 
 -- World / spawn (legacy single-stage names still used as fallbacks)
 ObbyConfig.StageFolderName = "AuraFarmStages"

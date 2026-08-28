@@ -16,8 +16,8 @@ AuraTheme.Colors = {
 	AccentHot = Color3.fromRGB(255, 100, 200),
 	AccentCool = Color3.fromRGB(100, 220, 255),
 	Gold = Color3.fromRGB(255, 210, 120),
-	Path = Color3.fromRGB(55, 40, 90), -- dark slate run surface (NOT pure neon)
-	PathEdge = Color3.fromRGB(160, 100, 255),
+	Path = Color3.fromRGB(32, 28, 48), -- matte dark run surface (readable feet)
+	PathEdge = Color3.fromRGB(90, 70, 130), -- soft rim, not blinding
 	Safe = Color3.fromRGB(80, 200, 140),
 	Danger = Color3.fromRGB(255, 60, 100),
 	Ground = Color3.fromRGB(28, 20, 48),
@@ -39,29 +39,29 @@ AuraTheme.Materials = {
 -- Default atmosphere when not in a stage-specific mood
 AuraTheme.Lighting = {
 	ClockTime = 20.5, -- night aura farm
-	Brightness = 1.6,
-	Ambient = AuraTheme.Colors.Ambient,
-	OutdoorAmbient = AuraTheme.Colors.Outdoor,
+	Brightness = 1.15, -- lower so platforms stay readable
+	Ambient = Color3.fromRGB(55, 42, 85),
+	OutdoorAmbient = Color3.fromRGB(70, 55, 105),
 	FogColor = AuraTheme.Colors.Fog,
 	FogStart = 60,
 	FogEnd = 280, -- tight = focus on current room
-	EnvironmentDiffuseScale = 0.4,
-	EnvironmentSpecularScale = 0.3,
-	ShadowSoftness = 0.4,
-	ExposureCompensation = 0.15,
+	EnvironmentDiffuseScale = 0.35,
+	EnvironmentSpecularScale = 0.2,
+	ShadowSoftness = 0.45,
+	ExposureCompensation = 0.0,
 }
 
 AuraTheme.Bloom = {
-	Intensity = 0.55,
-	Size = 28,
-	Threshold = 0.85,
+	Intensity = 0.22, -- keep glow on orbs/accents, not floors
+	Size = 18,
+	Threshold = 1.15, -- only very bright parts bloom
 }
 
 AuraTheme.ColorCorrection = {
-	Brightness = 0.02,
-	Contrast = 0.12,
-	Saturation = 0.2,
-	TintColor = Color3.fromRGB(230, 210, 255),
+	Brightness = -0.02,
+	Contrast = 0.14,
+	Saturation = 0.1,
+	TintColor = Color3.fromRGB(220, 210, 235),
 }
 
 -- Stage room isolation

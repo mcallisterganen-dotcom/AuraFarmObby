@@ -35,33 +35,35 @@ end
 
 -- Global void death plane — kills anyone who falls off the course
 function TerrainGenerator:_voidKill(parent: Instance)
-	-- Visual abyss
+	-- Visual abyss (deep, non-collide)
 	part({
 		Name = "VoidVisual",
 		Parent = parent,
 		Size = Vector3.new(4000, 8, 4000),
-		Position = Vector3.new(200, -55, -200),
+		Position = Vector3.new(200, -40, -200),
 		Color = C.VoidDeep,
 		Material = Enum.Material.SmoothPlastic,
 		CanCollide = false,
-		Transparency = 0.2,
+		Transparency = 0.15,
 		CastShadow = false,
 	})
 
-	-- Actual kill volume (wide + thick so you can't miss it)
+	-- Kill volume sits just under the lowest platforms so a fall always hits it.
+	-- Stages sit ~Y 12–40; this plane is at Y ≈ 0 and thick downward.
 	local kill = part({
 		Name = "WorldVoidKill",
 		Parent = parent,
-		Size = Vector3.new(4000, 20, 4000),
-		Position = Vector3.new(200, -70, -200),
+		Size = Vector3.new(5000, 80, 5000),
+		Position = Vector3.new(200, -25, -200),
 		Color = C.Danger,
-		Material = M.Glow,
+		Material = Enum.Material.SmoothPlastic,
 		CanCollide = true,
-		Transparency = 0.85,
+		Transparency = 0.92,
 		CastShadow = false,
 	})
 	kill:SetAttribute(ObbyConfig.KillTag, true)
 	kill:SetAttribute("Kill", true)
+	-- Extra safety: also tag by name pattern used in wireStageParts
 
 	-- Soft fog wall rings (visual only)
 	for i = 1, 6 do
@@ -90,7 +92,7 @@ function TerrainGenerator:_groundPlate(
 	color: Color3
 )
 	local groundY = baseY - 14
-	-- Main earth slab under the whole run
+	-- Visual earth only — NOT collidable (so falls go to void kill, not a safe shelf)
 	part({
 		Name = "GroundSlab",
 		Parent = parent,
@@ -98,10 +100,10 @@ function TerrainGenerator:_groundPlate(
 		Position = Vector3.new(originX, groundY, -lengthZ * 0.45),
 		Color = color,
 		Material = M.Ground,
-		CanCollide = true, -- can stand if you fall to the shelf
+		CanCollide = false,
 		CastShadow = true,
 	})
-	-- Side berms
+	-- Side berms (visual only)
 	for _, side in { -1, 1 } do
 		part({
 			Name = "Berm",
@@ -114,11 +116,9 @@ function TerrainGenerator:_groundPlate(
 				math.clamp(math.floor(color.B * 255) + 10, 0, 255)
 			),
 			Material = M.Rock,
-			CanCollide = true,
+			CanCollide = false,
 		})
 	end
-	-- Kill shelf edge: if you walk off the ground plate you still hit void
-	-- (void kill is global)
 end
 
 function TerrainGenerator:_roomShell(parent: Instance, originX: number, baseY: number, theme: string)
@@ -269,7 +269,7 @@ function TerrainGenerator:_canyon(parent: Instance, originX: number, baseY: numb
 			Position = Vector3.new(x, baseY - 8 + h * 0.3, z),
 			Color = Color3.fromRGB(60 + rng:NextInteger(0, 30), 45, 90 + rng:NextInteger(0, 40)),
 			Material = M.Rock,
-			CanCollide = true,
+			CanCollide = false,
 		})
 	end
 

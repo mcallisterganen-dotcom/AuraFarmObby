@@ -397,14 +397,24 @@ local function wireCharacter(player: Player, char: Model)
 		end)
 	end
 
-	-- Bounce pads (client-feel via server impulse)
+	-- Fall death watchdog (void part + height) so falling always kills
 	task.spawn(function()
 		while player.Character == char do
 			local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
 			if hrp then
-				-- fall into world kill handled by parts
+				local run = runs[player.UserId]
+				local floorY = 4
+				if run then
+					local def = StageConfig.Get(run.stageId)
+					if def then
+						floorY = def.baseY - 10
+					end
+				end
+				if hrp.Position.Y < floorY then
+					onKill(player)
+				end
 			end
-			task.wait(0.2)
+			task.wait(0.12)
 		end
 	end)
 
@@ -475,16 +485,23 @@ local function wireStageParts(root: Instance)
 			end)
 		end
 
-		-- Kill
+		-- Kill (void + bricks)
 		if part:GetAttribute(ObbyConfig.KillTag) == true or part.Name:find("Kill") then
+			part.CanTouch = true
+			if part.Name == "WorldVoidKill" then
+				part.CanCollide = true
+			end
 			part.Touched:Connect(function(hit)
+				if not hit or not hit.Parent then
+					return
+				end
 				local char = hit:FindFirstAncestorOfClass("Model")
 				if not char then
 					return
 				end
-				local player = Players:GetPlayerFromCharacter(char)
-				if player then
-					onKill(player)
+				local plr = Players:GetPlayerFromCharacter(char)
+				if plr then
+					onKill(plr)
 				end
 			end)
 		end

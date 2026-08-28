@@ -21,7 +21,13 @@ local function setFolderVisible(folder: Instance?, visible: boolean)
 	for _, d in folder:GetDescendants() do
 		if d:IsA("BasePart") then
 			-- Keep void kill always on
-			if d.Name == "WorldVoidKill" or d.Name == "VoidVisual" then
+			if d.Name == "WorldVoidKill" or d.Name == "VoidVisual" or d.Name:find("Kill") then
+				-- never hide / never disable collide on kill volumes
+				if d.Name == "WorldVoidKill" then
+					d.CanCollide = true
+					d.Transparency = math.clamp(d.Transparency, 0.85, 0.95)
+					d.LocalTransparencyModifier = 0
+				end
 				continue
 			end
 			if visible then
