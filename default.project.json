@@ -44,6 +44,12 @@
         },
         "MovementConfig": {
           "$path": "src/shared/MovementConfig.luau"
+        },
+        "StageConfig": {
+          "$path": "src/shared/StageConfig.luau"
+        },
+        "ParkourKit": {
+          "$path": "src/shared/ParkourKit.luau"
         }
       }
     },

@@ -1,6 +1,14 @@
-# Publish checklist — Aura Farm Obby
+# Publish checklist — Aura Farm Obby (v0.5)
 
 Use this before putting the game on Roblox servers.
+
+## v0.5 multi-stage smoke test
+- [ ] Lobby hub pads select Stage 1 / 2 / 3
+- [ ] Stage 2 locked until Stage 1 clear; Stage 3 until Stage 2
+- [ ] Finish Stage 1 → portal to Stage 2 works
+- [ ] Biomes look different (grass / crystals / neon towers)
+- [ ] Per-stage best times persist on rejoin
+- [ ] Restart only resets current stage orbs
 
 ## 1. Build & open
 ```bash

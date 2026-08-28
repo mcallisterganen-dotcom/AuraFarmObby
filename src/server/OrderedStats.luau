@@ -1,102 +1,86 @@
--- OrderedDataStore best-time board (tides LeaderboardService pattern, simplified).
+-- OrderedDataStore best-time board.
 
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 
-local ObbyConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("ObbyConfig"))
-
 local OrderedStats = {}
 
-local store: OrderedDataStore? = nil
-local ready = false
-local cache: { { userId: number, name: string, time: number } } = {}
-local lastFetch = 0
+local STORE_NAME = "AuraFarmBestTimes_v1"
+local ordered: OrderedDataStore? = nil
+local cache: { { name: string, userId: number, time: number } } = {}
+local cacheAt = 0
 
 function OrderedStats.Init()
-	if not ObbyConfig.DataStoreEnabled then
-		return
-	end
-	local ok, result = pcall(function()
-		return DataStoreService:GetOrderedDataStore(ObbyConfig.OrderedBestTimeName or "AuraFarm_BestTime_v1")
+	pcall(function()
+		ordered = DataStoreService:GetOrderedDataStore(STORE_NAME)
 	end)
-	if ok and result then
-		store = result
-		ready = true
-		print("[OrderedStats] OrderedDataStore ready")
-	else
-		warn("[OrderedStats] unavailable:", result)
-	end
+	print("[OrderedStats] Ready", ordered ~= nil)
 end
 
--- Lower time is better → store inverted score so higher ranks first.
-local function scoreFromTime(sec: number): number
-	-- millisecond precision, inverted
-	return math.floor((100000 - sec) * 1000)
-end
+-- Lower time is better. Store as score = large - centiseconds so higher Ordered score = faster.
+local SCORE_BASE = 100000000
 
-local function timeFromScore(score: number): number
-	return (100000 - score / 1000)
-end
-
-function OrderedStats.Submit(player: Player, bestTime: number)
-	if not ready or not store or player.UserId <= 0 then
+function OrderedStats.Submit(player: Player, timeSec: number)
+	if not ordered or timeSec <= 0 then
 		return
 	end
-	if typeof(bestTime) ~= "number" or bestTime <= 0 then
-		return
+	local cs = math.floor(timeSec * 100 + 0.5)
+	local score = SCORE_BASE - cs
+	if score < 1 then
+		score = 1
 	end
-	local score = scoreFromTime(bestTime)
-	task.spawn(function()
-		pcall(function()
-			store:SetAsync(tostring(player.UserId), score)
+	local key = tostring(player.UserId)
+	pcall(function()
+		ordered:UpdateAsync(key, function(old)
+			if typeof(old) == "number" and old >= score then
+				return old -- already better (higher score = faster)
+			end
+			return score
 		end)
 	end)
+	cacheAt = 0 -- invalidate
 end
 
-function OrderedStats.GetTop(limit: number?): {
-	{
-		userId: number,
-		name: string,
-		time: number,
-	}
-}
-	limit = limit or 10
-	local now = os.clock()
-	if now - lastFetch < 15 and #cache > 0 then
-		return cache
+function OrderedStats.GetTop(n: number): { { name: string, userId: number, time: number } }
+	n = math.clamp(n or 10, 1, 50)
+	if os.clock() - cacheAt < 15 and #cache > 0 then
+		local out = {}
+		for i = 1, math.min(n, #cache) do
+			out[i] = cache[i]
+		end
+		return out
 	end
-	if not ready or not store then
-		return cache
-	end
-
-	local ok, pages = pcall(function()
-		return store:GetSortedAsync(false, limit)
-	end)
-	if not ok or not pages then
-		return cache
-	end
-
-	local page = pages:GetCurrentPage()
 	local rows = {}
-	for _, entry in page do
-		local userId = tonumber(entry.key) or 0
-		local t = timeFromScore(entry.value)
-		local name = "Player"
-		local p = Players:GetPlayerByUserId(userId)
-		if p then
-			name = p.DisplayName
-		else
-			local okn, n = pcall(function()
-				return Players:GetNameFromUserIdAsync(userId)
-			end)
-			if okn and n then
-				name = n
+	if ordered then
+		local ok, pages = pcall(function()
+			return ordered:GetSortedAsync(false, n) -- false = descending score = faster times first
+		end)
+		if ok and pages then
+			local page = pages:GetCurrentPage()
+			for _, entry in page do
+				local userId = tonumber(entry.key) or 0
+				local score = entry.value
+				local cs = SCORE_BASE - score
+				local timeSec = cs / 100
+				local name = "Player"
+				local plr = Players:GetPlayerByUserId(userId)
+				if plr then
+					name = plr.DisplayName
+				else
+					pcall(function()
+						name = Players:GetNameFromUserIdAsync(userId)
+					end)
+				end
+				table.insert(rows, {
+					name = name,
+					userId = userId,
+					time = timeSec,
+				})
 			end
 		end
-		table.insert(rows, { userId = userId, name = name, time = t })
 	end
 	cache = rows
-	lastFetch = now
+	cacheAt = os.clock()
 	return rows
 end
 

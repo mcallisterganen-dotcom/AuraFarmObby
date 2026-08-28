@@ -1,46 +1,49 @@
--- Soft offline aura drip while away (gear-clicker EarningsService idea).
--- Caps so it never replaces actually playing.
-
-local ObbyConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("ObbyConfig"))
-local TimeUtil = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("TimeUtil"))
+-- Soft offline aura drip while away. Capped so it never replaces playing.
 
 local OfflineEarnings = {}
 
-function OfflineEarnings.Collect(profile): { aura: number, coins: number, seconds: number }?
-	local last = profile.lastSeenAt
-	profile.lastSeenAt = os.time()
-	if type(last) ~= "number" then
+local RATE_PER_HOUR = 12
+local MAX_HOURS = 8
+local MIN_SECONDS = 5 * 60
+
+function OfflineEarnings.Collect(profile: any): { aura: number, seconds: number, label: string }?
+	if typeof(profile) ~= "table" then
 		return nil
 	end
-	local elapsed = os.time() - last
-	local minSec = ObbyConfig.OfflineMinSec or 120
-	local maxSec = ObbyConfig.OfflineMaxSec or (6 * 3600)
-	if elapsed < minSec then
+	local last = profile.lastLogoutAt or profile.lastSeen
+	if typeof(last) ~= "number" then
+		profile.lastSeen = os.time()
 		return nil
 	end
-	local counted = math.min(elapsed, maxSec)
-	-- Rate scales lightly with lifetime finishes (progress feel)
-	local finishes = profile.totalFinishes or 0
-	local auraPerHour = (ObbyConfig.OfflineAuraPerHour or 12) + math.min(20, finishes)
-	local coinPerHour = (ObbyConfig.OfflineCoinsPerHour or 4) + math.min(8, math.floor(finishes / 2))
-	local hours = counted / 3600
-	local aura = math.floor(auraPerHour * hours)
-	local coins = math.floor(coinPerHour * hours)
-	if aura <= 0 and coins <= 0 then
+	local dt = os.time() - last
+	if dt < MIN_SECONDS then
+		profile.lastSeen = os.time()
 		return nil
 	end
-	profile.aura = (profile.aura or 0) + aura
-	profile.coins = (profile.coins or 0) + coins
+	local hours = math.min(dt / 3600, MAX_HOURS)
+	local aura = math.floor(hours * RATE_PER_HOUR)
+	if aura < 1 then
+		profile.lastSeen = os.time()
+		return nil
+	end
+	profile.lastSeen = os.time()
+	local label
+	if hours >= 1 then
+		label = string.format("%.1fh away", hours)
+	else
+		label = string.format("%dm away", math.floor(dt / 60))
+	end
 	return {
 		aura = aura,
-		coins = coins,
-		seconds = counted,
-		label = TimeUtil.FormatCompact(counted),
+		seconds = dt,
+		label = label,
 	}
 end
 
-function OfflineEarnings.Touch(profile)
-	profile.lastSeenAt = os.time()
+function OfflineEarnings.Touch(profile: any)
+	if typeof(profile) == "table" then
+		profile.lastSeen = os.time()
+	end
 end
 
 return OfflineEarnings

@@ -1,4 +1,4 @@
--- UTC date helpers (tides-of-trade TimeUtil) — dailies / streaks.
+-- UTC date helpers for dailies / streaks.
 
 local TimeUtil = {}
 
@@ -8,48 +8,34 @@ end
 
 function TimeUtil.UtcYmd(ts: number?): string
 	local t = ts or os.time()
+	-- os.date with ! = UTC
 	return os.date("!%Y-%m-%d", t) :: string
 end
 
-function TimeUtil.IsSameUtcDay(a: number, b: number): boolean
-	return TimeUtil.UtcYmd(a) == TimeUtil.UtcYmd(b)
+function TimeUtil.UtcDayIndex(ts: number?): number
+	local t = ts or os.time()
+	return math.floor(t / 86400)
 end
 
--- Returns true if `previous` was yesterday UTC relative to `now`.
-function TimeUtil.IsPreviousUtcDay(previous: number, now: number): boolean
-	local yest = now - 86400
-	return TimeUtil.UtcYmd(previous) == TimeUtil.UtcYmd(yest)
-end
-
-function TimeUtil.SecondsUntilNextUtcMidnight(now: number?): number
-	local t = now or os.time()
-	local d = os.date("!*t", t)
-	local secsToday = (d.hour :: number) * 3600 + (d.min :: number) * 60 + (d.sec :: number)
-	return 86400 - secsToday
-end
-
-function TimeUtil.FormatDuration(sec: number): string
-	sec = math.max(0, sec)
-	local m = math.floor(sec / 60)
-	local s = sec % 60
-	if m >= 60 then
-		local h = math.floor(m / 60)
-		m = m % 60
-		return string.format("%d:%02d:%05.2f", h, m, s)
+function TimeUtil.FormatCompact(seconds: number): string
+	seconds = math.max(0, math.floor(seconds))
+	if seconds < 60 then
+		return string.format("%ds", seconds)
+	elseif seconds < 3600 then
+		return string.format("%dm", math.floor(seconds / 60))
+	elseif seconds < 86400 then
+		local h = math.floor(seconds / 3600)
+		local m = math.floor((seconds % 3600) / 60)
+		return string.format("%dh %dm", h, m)
+	else
+		local d = math.floor(seconds / 86400)
+		local h = math.floor((seconds % 86400) / 3600)
+		return string.format("%dd %dh", d, h)
 	end
-	return string.format("%d:%05.2f", m, s)
 end
 
-function TimeUtil.FormatCompact(sec: number): string
-	sec = math.floor(math.max(0, sec))
-	if sec < 60 then
-		return tostring(sec) .. "s"
-	elseif sec < 3600 then
-		return string.format("%dm %ds", math.floor(sec / 60), sec % 60)
-	elseif sec < 86400 then
-		return string.format("%dh %dm", math.floor(sec / 3600), math.floor((sec % 3600) / 60))
-	end
-	return string.format("%dd %dh", math.floor(sec / 86400), math.floor((sec % 86400) / 3600))
+function TimeUtil.HoursBetween(a: number, b: number): number
+	return math.abs(b - a) / 3600
 end
 
 return TimeUtil

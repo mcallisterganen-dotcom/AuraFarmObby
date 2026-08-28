@@ -1,4 +1,4 @@
--- Applies equipped trail cosmetic to character (tides cosmetics pattern).
+-- Applies equipped trail cosmetic to character.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -28,10 +28,8 @@ function TrailService.Apply(character: Model, trailId: string?)
 		return
 	end
 
-	local def = CosmeticsCatalog.GetTrail(trailId or "trail_starter")
-	if not def then
-		def = CosmeticsCatalog.GetTrail("trail_starter")
-	end
+	local def = CosmeticsCatalog.GetTrail(trailId or "default")
+		or CosmeticsCatalog.GetTrail("default")
 	if not def then
 		return
 	end
@@ -48,6 +46,7 @@ function TrailService.Apply(character: Model, trailId: string?)
 	a1:SetAttribute("AuraFarmTrail", true)
 	a1.Parent = hrp
 
+	local w = def.widthScale or 0.5
 	local trail = Instance.new("Trail")
 	trail.Name = "AuraFarmTrail"
 	trail.Attachment0 = a0
@@ -57,10 +56,10 @@ function TrailService.Apply(character: Model, trailId: string?)
 		NumberSequenceKeypoint.new(0, 0.15),
 		NumberSequenceKeypoint.new(1, 1),
 	})
-	trail.Lifetime = 0.45
+	trail.Lifetime = def.lifetime or 0.55
 	trail.FaceCamera = true
 	trail.LightEmission = def.lightEmission or 0.5
-	trail.WidthScale = NumberSequence.new(def.width0 or 0.5, def.width1 or 0.05)
+	trail.WidthScale = NumberSequence.new(w, w * 0.1)
 	trail:SetAttribute("AuraFarmTrail", true)
 	trail.Parent = hrp
 end

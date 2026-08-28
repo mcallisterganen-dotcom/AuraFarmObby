@@ -143,7 +143,7 @@ end
 
 -- Pulse body color briefly to match equipped shop trail (visual juice only)
 function CosmeticsSystem:PulseTrailColor(trailId: string?)
-	local def = CosmeticsCatalog.GetTrail(trailId or "trail_starter")
+	local def = CosmeticsCatalog.GetTrail(trailId or "default")
 	if not def or not self.hrp then
 		return
 	end

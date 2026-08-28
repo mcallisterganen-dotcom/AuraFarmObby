@@ -1,25 +1,29 @@
--- Procedural / placeholder SFX ids (tides SoundCatalog pattern).
--- Uses Roblox built-in library IDs that work without custom uploads.
+-- SFX catalog using Roblox built-in library IDs (no custom upload required).
 
 local SoundCatalog = {}
 
--- Public toolbox-ish classics (safe defaults; swap for your own assets later)
 SoundCatalog.Ids = {
-	OrbPickup = "rbxassetid://12222216", -- electronic blip
-	Checkpoint = "rbxassetid://12222225",
-	Finish = "rbxassetid://1837829361", -- success-ish
-	Death = "rbxassetid://12222208",
-	Purchase = "rbxassetid://12222253",
-	Equip = "rbxassetid://12222260",
-	Achievement = "rbxassetid://1837829361",
-	Click = "rbxassetid://12222208",
-	Notify = "rbxassetid://12222216",
-	Whoosh = "rbxassetid://12222253",
+	Orb = "rbxassetid://9119720957",
+	Lucky = "rbxassetid://9119720957",
+	Checkpoint = "rbxassetid://12222253",
+	Finish = "rbxassetid://12222208",
+	Death = "rbxassetid://12222216",
+	Whoosh = "rbxassetid://9114224583",
+	Purchase = "rbxassetid://12222255",
+	Equip = "rbxassetid://12222255",
+	Achievement = "rbxassetid://12222208",
+	Error = "rbxassetid://12222216",
+	UI = "rbxassetid://6701939800",
+	Bounce = "rbxassetid://9119720957",
 }
 
--- Ambient "music" bed — soft loop; disable in settings
-SoundCatalog.MusicId = "rbxassetid://1842614858" -- calm loop-ish (replace anytime)
+-- Soft ambient loop (optional music bed)
+SoundCatalog.MusicId = "rbxassetid://1844702927"
 SoundCatalog.MusicVolume = 0.25
 SoundCatalog.SfxVolume = 0.55
+
+function SoundCatalog.Get(name: string): string?
+	return SoundCatalog.Ids[name]
+end
 
 return SoundCatalog

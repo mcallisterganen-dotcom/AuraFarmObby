@@ -1,94 +1,68 @@
 # Aura Farm Obby
 
-Solo fair-skill obby: clear Stage 1, farm Aura, unlock trails, chase best times, hit dailies.
+Solo fair-skill **multi-stage** Roblox obby:
 
-**v0.4** pulls a *lot* more from reference games — not just cosmetics + RNG.
+1. **Meadow Run** — learn the flow  
+2. **Crystal Canyon** — timing & height  
+3. **Neon Spire** — precision endgame  
 
-## Integrated from other repos
+Farm Aura, unlock trails, chase best times, complete dailies.
 
-### [tides-of-trade](https://github.com/Chronos31bit/tides-of-trade)
-| System | In Aura Farm |
-|--------|----------------|
-| ProfileService-style data + autosave | `PlayerData` |
-| Cosmetics catalog + equip | trails shop |
-| Achievements + banners | `Achievements` |
-| Daily quests + login streak | `QuestService` / `DailyQuests` |
-| Weather / environment cycles | `WeatherService` (Clear → Golden → Storm → Night) with Aura mult |
-| Ordered leaderboards | `OrderedStats` best times |
-| Rate limiter on remotes | `RateLimiter` |
-| Time / UTC day helpers | `TimeUtil` |
-| Tutorial dialogue flow | first-run tips |
-| Settings (music / sfx / reduce FX) | Settings panel |
-| Notifications | toast stack + SFX |
-| Sound catalog | `SoundCatalog` + client playback |
-| Central GameConfig | `ObbyConfig` |
+**Version:** 0.5.0
 
-### [gear-clicker](https://github.com/Chronos31bit/gear-clicker)
-| System | In Aura Farm |
-|--------|----------------|
-| Offline / AFK earnings | `OfflineEarnings` on rejoin |
-| Soft currency loop | Aura orbs + shop |
-| Combo / multiplier feel | orb combo + weather + luck |
-| HUD polish | currency, streak, weather, times |
-
-## Run
+## Play (Studio)
 
 ```bash
 rojo serve
+# Studio → Rojo plugin → Connect → Play
+# or:
+rojo build -o game.rbxlx
 ```
 
-Rojo → Roblox Studio connect → **Play**.  
-Enable **Studio Access to API Services** for DataStore saves + global best times.
+## What’s in v0.5
+
+| System | Notes |
+|--------|--------|
+| 3 designed stages | ParkourKit primitives (gaps, weave, movers, bounce, spiral) |
+| Biome terrain | Meadow hills/trees, canyon crystals, neon towers |
+| Lobby hub | Stage select pads + portals after clears |
+| Progression | Stage 2/3 locked until previous clear |
+| Per-stage bests | Saved in profile + global OrderedDataStore board |
+| Anti-cheat finish | Distance + min time + checkpoint gate |
+| Economy | Orbs, combos, weather mult, lucky rolls, shop trails |
+| Meta | Dailies, achievements, offline drip, soft shutdown |
+| UX | Loading screen, mobile Sprint/Crouch/Slide, graphics presets |
 
 ## Controls
-| Key | Action |
-|-----|--------|
-| **R** | Restart run |
-| **B** | Shop (trails) |
-| **Q** | Daily quests |
-| **T** | Best times board |
-| **P** | Settings |
-| **E** | Emote (Victory / Dance / Cheer) |
-| **Y** | Cycle body aura skin |
-| **G** | Cycle graphics preset |
-| **Shift** | Sprint |
-| **Ctrl** | Crouch |
-| **C** | Slide |
 
-## Loop
-1. Parkour Stage 1 (checkpoints / kills / mover / finish)
-2. Orbs → Aura (combo + lucky mult + weather mult)
-3. Finish → best time + achievements (+ victory emote / flash)
-4. Spend Aura on trails · claim dailies · build login streak
-5. Leave & return → soft AFK rewards
-
-## Layout
-
-```
-src/shared/   config, catalogs, util, remotes, AnimationConfig, MovementConfig, AnimationConfig
-src/server/   ObbyServer + StageBuilder + TerrainGenerator + services (trails server-side)
-src/client/   ObbyClient HUD + PlayerClient (anim / aura skins / graphics)
-```
-
-### Your systems (integrated)
-- `AnimationSystem` — locomotion blend + emotes
-- `CosmeticsSystem` — body aura particles (stacks with server shop trails)
-- `GraphicsSystem` — client CC / Bloom / DOF (does not fight weather ClockTime)
-- `MovementSystem` — sprint / crouch / slide + FOV juice
-- `TerrainGenerator` — scenic decor around StageBuilder course
-- Hooks: finish flash + victory emote, achievement cheer, Reduce FX
-- Not double-run: IntegratedClient / ObbyManager are no-ops (logic in PlayerClient + ObbyServer)
-
-Repo: https://github.com/mcallisterganen-dotcom/AuraFarmObby
-
+| Input | Action |
+|-------|--------|
+| WASD | Move |
+| Shift | Sprint |
+| Ctrl | Crouch |
+| C | Slide |
+| R | Restart run |
+| B | Shop |
+| Q | Quests |
+| T | Best times |
+| P | Settings |
+| E | Emote (client) |
+| Y | Aura flash |
+| G | Graphics cycle |
+| Mobile | On-screen Sprint / Crouch / Slide |
 
 ## Publish
-See **[PUBLISH.md](PUBLISH.md)** for the full go-live checklist (DataStores, playtest matrix, anti-cheat, Studio settings).
 
-### v0.4 production polish
-- Loading screen
-- Mobile Sprint / Crouch / Slide buttons
-- Finish anti-cheat (distance + min time + checkpoint gate)
-- Leaderstats BestCs (best time in centiseconds)
-- Soft DataStore flush on server close
-- Your upgraded StageBuilder + TerrainGenerator kept
+See **[PUBLISH.md](PUBLISH.md)**.
+
+## Repo layout
+
+```
+src/shared/   configs, catalogs, ParkourKit, StageConfig
+src/server/   ObbyServer hub, StageBuilder, Terrain, data
+src/client/   HUD, movement, cosmetics, loading, mobile
+```
+
+## Honest note on “AAA”
+
+Real Roblox hits take custom animations, sound design, thumbnails, social loops, and months of playtesting. This codebase is a **strong production foundation** (multi-stage, secure economy, publish checklist). Next polish layers: custom anim IDs, authored SFX, Stage 4–6, monetization that doesn’t break fair skill, private playtests.

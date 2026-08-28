@@ -49,13 +49,17 @@ local SettingsUpdate = R("SettingsUpdate")
 local TutorialState = R("TutorialState")
 local TutorialComplete = R("TutorialComplete")
 local PlaySound = R("PlaySound")
+local StageUpdate = R("StageUpdate")
 
 -- State
 local aura = 0
 local coins = 0
 local bestTime: number? = nil
-local equippedTrail = "trail_starter"
-local unlocked: { [string]: boolean } = { trail_starter = true }
+local stageId = 1
+local stageName = "Meadow Run"
+local stagesCleared: { number } = {}
+local equippedTrail = "default"
+local unlocked: { [string]: boolean } = { default = true }
 local runStart = os.clock()
 local finished = false
 local checkpointIndex = 0
@@ -158,7 +162,7 @@ local top = Instance.new("Frame")
 top.Name = "TopBar"
 top.AnchorPoint = Vector2.new(0.5, 0)
 top.Position = UDim2.new(0.5, 0, 0, 12)
-top.Size = UDim2.new(0, 460, 0, 56)
+top.Size = UDim2.new(0, 520, 0, 56)
 top.BackgroundColor3 = COLORS.UI
 top.BackgroundTransparency = 0.15
 top.Parent = gui
@@ -186,9 +190,10 @@ local function makeStat(name: string, color: Color3, width: number?): TextLabel
 	return t
 end
 
-local auraLabel = makeStat("Aura", COLORS.Aura, 110)
-local coinLabel = makeStat("Coins", COLORS.Coin, 100)
-local timeLabel = makeStat("Time", Color3.fromRGB(220, 230, 255), 120)
+local auraLabel = makeStat("Aura", COLORS.Aura, 95)
+local coinLabel = makeStat("Coins", COLORS.Coin, 90)
+local timeLabel = makeStat("Time", Color3.fromRGB(220, 230, 255), 105)
+local stageLabel = makeStat("Stage", Color3.fromRGB(180, 255, 220), 120)
 local streakLabel = makeStat("Streak", Color3.fromRGB(255, 160, 100), 90)
 
 local cpLabel = Instance.new("TextLabel")
@@ -889,6 +894,9 @@ end)
 local function refreshTop()
 	auraLabel.Text = "Aura: " .. FormatUtil.Compact(aura)
 	coinLabel.Text = "Coins: " .. FormatUtil.Compact(coins)
+	if stageLabel then
+		stageLabel.Text = string.format("S%d %s", stageId, stageName)
+	end
 	cpLabel.Text = "CP " .. tostring(checkpointIndex)
 	weatherChip.Text = string.format(
 		"%s%s",
@@ -958,6 +966,15 @@ StatsUpdate.OnClientEvent:Connect(function(snap)
 	aura = snap.aura or aura
 	coins = snap.coins or coins
 	bestTime = snap.bestTime
+	if type(snap.stageId) == "number" then
+		stageId = snap.stageId
+	end
+	if type(snap.stageName) == "string" then
+		stageName = snap.stageName
+	end
+	if type(snap.stagesCleared) == "table" then
+		stagesCleared = snap.stagesCleared
+	end
 	equippedTrail = snap.equippedTrail or equippedTrail
 	if type(snap.unlocked) == "table" then
 		unlocked = snap.unlocked
@@ -994,18 +1011,34 @@ FinishEv.OnClientEvent:Connect(function(payload)
 	end
 	finished = true
 	local t = payload.time or 0
-	bestTime = payload.bestTime
-	aura = payload.aura or aura
-	coins = payload.coins or coins
+	if payload.best == true then
+		bestTime = t
+	elseif type(payload.bestTime) == "number" then
+		bestTime = payload.bestTime
+	end
+	if type(payload.stageId) == "number" then
+		stageId = payload.stageId
+	end
+	if type(payload.stageName) == "string" then
+		stageName = payload.stageName
+		finishTitle.Text = payload.stageName .. " Clear!"
+	end
+	local gainAura = tonumber(payload.aura) or 0
+	local gainCoins = tonumber(payload.coins) or 0
+	local nextLine = ""
+	if payload.nextUnlocked and payload.nextStage then
+		nextLine = string.format("\nPortal open → Stage %d", payload.nextStage)
+	end
 	refreshTop()
 	finishBody.Text = string.format(
-		"Time: %s\nBest: %s%s\n\n+%d Aura   +%d Coins\n\nBanked Aura: %s",
+		"Time: %s%s\nBest: %s\n\n+%d Aura   +%d Coins\nBanked Aura: %s%s",
 		FormatUtil.Time(t),
+		payload.best and "  ★ PB" or "",
 		bestTime and FormatUtil.Time(bestTime) or "—",
-		payload.isBest and "  ★" or "",
-		payload.bonusAura or 0,
-		payload.bonusCoins or 0,
-		FormatUtil.Comma(aura)
+		gainAura,
+		gainCoins,
+		FormatUtil.Comma(aura),
+		nextLine
 	)
 	finishPanel.Visible = true
 	if not settings.reduceFx then
@@ -1098,6 +1131,23 @@ TutorialState.OnClientEvent:Connect(function(done)
 	showTutorialStep()
 end)
 
+
+StageUpdate.OnClientEvent:Connect(function(info)
+	if type(info) ~= "table" then
+		return
+	end
+	if type(info.stageId) == "number" then
+		stageId = info.stageId
+	end
+	if type(info.stageName) == "string" then
+		stageName = info.stageName
+	end
+	if type(info.stagesCleared) == "table" then
+		stagesCleared = info.stagesCleared
+	end
+	refreshTop()
+end)
+
 refreshTop()
-showToast(ObbyConfig.GameName .. " · B shop · Q quests · T times · P settings", "aura")
+showToast(ObbyConfig.GameName .. " v" .. tostring(ObbyConfig.Version) .. " · 3 stages", "aura")
 print("[ObbyClient] HUD ready")

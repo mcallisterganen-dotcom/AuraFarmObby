@@ -1,4 +1,4 @@
--- Weighted random helpers (from gear-clicker RNG pattern).
+-- Weighted random helpers.
 
 local RNG = {}
 
@@ -54,6 +54,10 @@ function RNG.WeightedTablePick(weights: { [string]: number }): string?
 		end
 	end
 	return keys[#keys]
+end
+
+function RNG.Chance(p: number): boolean
+	return math.random() < math.clamp(p, 0, 1)
 end
 
 -- Lucky orb multiplier roll (common → jackpot)

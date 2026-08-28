@@ -1,4 +1,4 @@
--- Daily quest pool (tides-of-trade QuestService pattern, obby-flavored).
+-- Daily quest pool.
 
 local DailyQuests = {}
 
@@ -6,102 +6,100 @@ export type QuestDef = {
 	id: string,
 	name: string,
 	description: string,
-	stat: string, -- finish | orb | death | checkpoint | play_minutes
+	stat: string,
 	target: number,
 	rewardAura: number,
 	rewardCoins: number,
 }
 
--- Rotating pool; server picks 3 per day from this list via day seed.
-DailyQuests.Pool = {
+local POOL: { QuestDef } = {
 	{
-		id = "daily_finish_1",
-		name = "Clear Once",
-		description = "Finish Stage 1 once today.",
-		stat = "finish",
+		id = "d_finish_1",
+		name = "Daily Clear",
+		description = "Finish a stage once",
+		stat = "finishes",
 		target = 1,
 		rewardAura = 20,
-		rewardCoins = 10,
-	},
-	{
-		id = "daily_finish_3",
-		name = "Triple Clear",
-		description = "Finish Stage 1 three times today.",
-		stat = "finish",
-		target = 3,
-		rewardAura = 50,
-		rewardCoins = 25,
-	},
-	{
-		id = "daily_orbs_10",
-		name = "Orb Run",
-		description = "Collect 10 orbs today.",
-		stat = "orb",
-		target = 10,
-		rewardAura = 25,
-		rewardCoins = 12,
-	},
-	{
-		id = "daily_orbs_25",
-		name = "Orb Sweep",
-		description = "Collect 25 orbs today.",
-		stat = "orb",
-		target = 25,
-		rewardAura = 60,
-		rewardCoins = 30,
-	},
-	{
-		id = "daily_cp_5",
-		name = "Checkpoint Hopper",
-		description = "Hit 5 new checkpoints today.",
-		stat = "checkpoint",
-		target = 5,
-		rewardAura = 15,
 		rewardCoins = 8,
 	},
 	{
-		id = "daily_deaths_3",
-		name = "Practice Falls",
-		description = "Die 3 times (learning counts).",
-		stat = "death",
+		id = "d_finish_3",
+		name = "Triple Clear",
+		description = "Finish stages 3 times",
+		stat = "finishes",
 		target = 3,
-		rewardAura = 10,
-		rewardCoins = 5,
+		rewardAura = 45,
+		rewardCoins = 15,
 	},
 	{
-		id = "daily_play_10",
-		name = "Hang Out",
-		description = "Play for 10 minutes today.",
-		stat = "play_minutes",
+		id = "d_orbs_10",
+		name = "Orb Route",
+		description = "Collect 10 orbs",
+		stat = "orbs",
 		target = 10,
-		rewardAura = 15,
+		rewardAura = 25,
 		rewardCoins = 10,
 	},
-} :: { QuestDef }
+	{
+		id = "d_orbs_25",
+		name = "Orb Marathon",
+		description = "Collect 25 orbs",
+		stat = "orbs",
+		target = 25,
+		rewardAura = 50,
+		rewardCoins = 18,
+	},
+	{
+		id = "d_cp_5",
+		name = "Checkpoint Tour",
+		description = "Hit 5 new checkpoints",
+		stat = "checkpoints",
+		target = 5,
+		rewardAura = 20,
+		rewardCoins = 8,
+	},
+	{
+		id = "d_play_10",
+		name = "Session Time",
+		description = "Play for 10 minutes",
+		stat = "playMinutes",
+		target = 10,
+		rewardAura = 30,
+		rewardCoins = 12,
+	},
+	{
+		id = "d_play_20",
+		name = "Long Session",
+		description = "Play for 20 minutes",
+		stat = "playMinutes",
+		target = 20,
+		rewardAura = 55,
+		rewardCoins = 20,
+	},
+}
 
-function DailyQuests.Get(id: string): QuestDef?
-	for _, q in DailyQuests.Pool do
-		if q.id == id then
-			return q
-		end
-	end
-	return nil
+function DailyQuests.Pool(): { QuestDef }
+	return POOL
 end
 
--- Deterministic 3 quests for a YYYY-MM-DD string.
-function DailyQuests.ForDay(ymd: string): { QuestDef }
-	local seed = 0
-	for i = 1, #ymd do
-		seed = (seed * 33 + string.byte(ymd, i)) % 2147483647
-	end
+function DailyQuests.PickForDay(seed: number): { QuestDef }
 	local rng = Random.new(seed)
-	local pool = table.clone(DailyQuests.Pool)
-	-- Fisher-Yates
+	local pool = table.clone(POOL)
+	-- shuffle
 	for i = #pool, 2, -1 do
 		local j = rng:NextInteger(1, i)
 		pool[i], pool[j] = pool[j], pool[i]
 	end
 	return { pool[1], pool[2], pool[3] }
+end
+
+function DailyQuests.Get(id: string): QuestDef?
+	for _, q in POOL do
+		if q.id == id then
+			return q
+		end
+	end
+	return nil
 end
 
 return DailyQuests

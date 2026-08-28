@@ -16,8 +16,6 @@ local EVENT_NAMES = {
 	"EquipCosmetic",
 	"CosmeticResult",
 	"AchievementUnlocked",
-	"OpenShop",
-	-- v0.3
 	"QuestUpdate",
 	"ClaimQuest",
 	"QuestResult",
@@ -29,20 +27,17 @@ local EVENT_NAMES = {
 	"TutorialState",
 	"TutorialComplete",
 	"PlaySound",
+	"StageUpdate",
+	"SelectStageRequest",
 }
 
-local function getFolder(): Folder
+function Remotes.InitServer()
 	local folder = ReplicatedStorage:FindFirstChild(FOLDER_NAME)
 	if not folder then
 		folder = Instance.new("Folder")
 		folder.Name = FOLDER_NAME
 		folder.Parent = ReplicatedStorage
 	end
-	return folder :: Folder
-end
-
-function Remotes.InitServer()
-	local folder = getFolder()
 	for _, name in EVENT_NAMES do
 		if not folder:FindFirstChild(name) then
 			local ev = Instance.new("RemoteEvent")
@@ -53,14 +48,14 @@ function Remotes.InitServer()
 	return folder
 end
 
-function Remotes.WaitClient(timeout: number?): Folder
-	return ReplicatedStorage:WaitForChild(FOLDER_NAME, timeout or 15) :: Folder
+function Remotes.GetFolder(): Folder
+	local folder = ReplicatedStorage:WaitForChild(FOLDER_NAME) :: Folder
+	return folder
 end
 
 function Remotes.Get(name: string): RemoteEvent
-	local folder = getFolder()
-	local ev = folder:FindFirstChild(name)
-	assert(ev and ev:IsA("RemoteEvent"), "Missing remote: " .. name)
+	local folder = Remotes.GetFolder()
+	local ev = folder:WaitForChild(name)
 	return ev :: RemoteEvent
 end
 
