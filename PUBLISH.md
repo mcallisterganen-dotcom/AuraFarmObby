@@ -1,3 +1,11 @@
+## v0.7 reliability checklist
+- [ ] Fall off any pad → death → checkpoint (or lobby if no run)
+- [ ] Cannot stand on trees/cliffs/ground decor — only path pads
+- [ ] Touch every orb on stage 1 → aura ticks up, can re-run stage for orbs again
+- [ ] Lobby: Daily Chest, Aura Wheel, Fountain, Emote pads, Bounce, Stage launch pads (ProximityPrompt E)
+- [ ] Bounce pads launch you
+- [ ] Platforms dim enough to see feet while sprinting
+
 # Publish checklist — Aura Farm Obby (v0.6)
 
 Use this before putting the game on Roblox servers.

@@ -2,30 +2,23 @@
 
 Purple-void multi-stage parkour. Farm aura, unlock trails, chase times.
 
-**v0.6 — Aura Farm vertical slice**
+**v0.7 — Reliability + lobby interact**
 
-## What changed (look & feel)
-
-- **Aura theme** — night purple lighting, bloom, atmosphere, fog rooms
-- **Run surfaces** — SmoothPlastic + high friction (neon only on edges)
-- **Grounded terrain** — earth slabs, berms, room shells under every stage
-- **Void death** — fall off and you die / checkpoint restore
-- **R15 locomotion** — official run/walk/jump/fall; default Animate disabled
-- **Stage rooms** — inactive stages hidden; fog tightens on focus
-- **Body aura FX** — particles + light matching equipped trail
+## Guarantees
+- **Path only** — collision groups: players stand on pads/checkpoints/finish/bounce/rails only
+- **Void death** — kill plane + height watchdog under every stage and lobby
+- **Orbs** — unique ids, large touch hulls, per-player collect, stage-tagged
+- **Lobby toys** — daily chest, aura wheel, fountain, emote pads, bounce, stage launch pads, tip boards
 
 ## Stages
-
 1. Meadow Run  
 2. Crystal Canyon  
 3. Neon Spire  
 
 ## Play
-
 ```bash
 rojo serve
 ```
-
 Studio → Rojo Connect → Play.
 
 | Key | Action |
@@ -39,7 +32,7 @@ Studio → Rojo Connect → Play.
 | T | Times |
 | P | Settings |
 | E | Emote |
-| G | Graphics preset |
+| G | Graphics |
 | Y | Aura pulse |
 
-See **PUBLISH.md** to go live.
+Walk up to lobby props and press **E** (ProximityPrompt) to interact.

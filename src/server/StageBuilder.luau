@@ -61,7 +61,7 @@ local function buildMeadow(folder: Folder, def)
 	z = 0
 	ParkourKit.LongPath(folder, z, z - 40, y, ox(def, 0), 12, T)
 	z = -40
-	ParkourKit.Orb(folder, Vector3.new(ox(def, 0), y + 5, z + 10), orbAura)
+	ParkourKit.Orb(folder, Vector3.new(ox(def, 0), y + 5, z + 10), orbAura, def.id)
 	ParkourKit.Checkpoint(folder, 1, Vector3.new(ox(def, 0), y + 0.2, z), T)
 	z -= 12
 
@@ -75,7 +75,7 @@ local function buildMeadow(folder: Folder, def)
 		T,
 		0
 	)
-	ParkourKit.Orb(folder, Vector3.new(ox(def, 3), y + 5, z + 6), orbAura)
+	ParkourKit.Orb(folder, Vector3.new(ox(def, 3), y + 5, z + 6), orbAura, def.id)
 	z -= 6
 	ParkourKit.Checkpoint(folder, 2, Vector3.new(ox(def, 0), y + 0.2, z), T)
 	z -= 14
@@ -93,7 +93,7 @@ local function buildMeadow(folder: Folder, def)
 	z = stairEnd.Z - 10
 	ParkourKit.LongPath(folder, z + 10, z - 20, y, ox(def, 0), 10, T)
 	z -= 20
-	ParkourKit.Orb(folder, Vector3.new(ox(def, -4), y + 5, z + 8), orbAura)
+	ParkourKit.Orb(folder, Vector3.new(ox(def, -4), y + 5, z + 8), orbAura, def.id)
 	ParkourKit.Checkpoint(folder, 4, Vector3.new(ox(def, 0), y + 0.2, z), T)
 	z -= 14
 
@@ -107,8 +107,8 @@ local function buildMeadow(folder: Folder, def)
 	-- Finish plateau
 	ParkourKit.Pad(folder, Vector3.new(ox(def, 0), y, z), Vector3.new(22, 1.5, 22), T, "FinishPlaza")
 	ParkourKit.Finish(folder, Vector3.new(ox(def, 0), y + 0.4, z - 4), T)
-	ParkourKit.Orb(folder, Vector3.new(ox(def, 6), y + 6, z), orbAura)
-	ParkourKit.Orb(folder, Vector3.new(ox(def, -6), y + 6, z), orbAura)
+	ParkourKit.Orb(folder, Vector3.new(ox(def, 6), y + 6, z), orbAura, def.id)
+	ParkourKit.Orb(folder, Vector3.new(ox(def, -6), y + 6, z), orbAura, def.id)
 
 	-- Portal to next stage (visual + touch attribute)
 	local portal = ParkourKit.Part({
@@ -154,7 +154,7 @@ local function buildCanyon(folder: Folder, def)
 		y += 2.2
 		ParkourKit.Pad(folder, Vector3.new(ox(def, (i % 2 == 0) and 4 or -4), y, z), Vector3.new(7, 1.2, 7), T, "Rise" .. i)
 		if i % 2 == 0 then
-			ParkourKit.Orb(folder, Vector3.new(ox(def, 0), y + 5, z), orbAura)
+			ParkourKit.Orb(folder, Vector3.new(ox(def, 0), y + 5, z), orbAura, def.id)
 		end
 		z -= 9
 	end
@@ -175,7 +175,7 @@ local function buildCanyon(folder: Folder, def)
 	ParkourKit.GapRun(folder, Vector3.new(ox(def, 0), y, z), 5, 6, Vector3.new(6, 1.1, 6), T, 3)
 	z -= 30
 	ParkourKit.Checkpoint(folder, 4, Vector3.new(ox(def, 0), y + 0.2, z), T)
-	ParkourKit.Orb(folder, Vector3.new(ox(def, 0), y + 6, z), orbAura)
+	ParkourKit.Orb(folder, Vector3.new(ox(def, 0), y + 6, z), orbAura, def.id)
 	z -= 12
 
 	-- Bounce into high path
@@ -245,7 +245,7 @@ local function buildNeon(folder: Folder, def)
 		y += 1.8
 		ParkourKit.Pad(folder, Vector3.new(ox(def, rx), y, rz), Vector3.new(5, 1, 5), T, "Spiral" .. i)
 		if i % 3 == 0 then
-			ParkourKit.Orb(folder, Vector3.new(ox(def, rx), y + 4, rz), orbAura)
+			ParkourKit.Orb(folder, Vector3.new(ox(def, rx), y + 4, rz), orbAura, def.id)
 		end
 	end
 	z = z - 10 * 3.2 - 8
@@ -285,7 +285,7 @@ local function buildNeon(folder: Folder, def)
 	ParkourKit.Pad(folder, Vector3.new(ox(def, 0), y, z), Vector3.new(18, 1.5, 18), T, "FinishPlaza")
 	ParkourKit.Finish(folder, Vector3.new(ox(def, 0), y + 0.4, z - 2), T)
 	for i = -1, 1 do
-		ParkourKit.Orb(folder, Vector3.new(ox(def, i * 5), y + 6, z), orbAura)
+		ParkourKit.Orb(folder, Vector3.new(ox(def, i * 5), y + 6, z), orbAura, def.id)
 	end
 end
 

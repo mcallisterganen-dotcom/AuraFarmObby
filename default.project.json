@@ -53,6 +53,9 @@
         },
         "AuraTheme": {
           "$path": "src/shared/AuraTheme.luau"
+        },
+        "WorldRules": {
+          "$path": "src/shared/WorldRules.luau"
         }
       }
     },
@@ -93,6 +96,12 @@
       },
       "StageStreamer": {
         "$path": "src/server/StageStreamer.luau"
+      },
+      "CollisionService": {
+        "$path": "src/server/CollisionService.luau"
+      },
+      "InteractionService": {
+        "$path": "src/server/InteractionService.luau"
       }
     },
     "StarterPlayer": {

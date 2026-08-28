@@ -136,4 +136,13 @@ task.spawn(function()
 end)
 
 toast("Shift sprint · Ctrl crouch · C slide · E/Y/G")
+
+-- Server-driven emote pads (lobby)
+player:GetAttributeChangedSignal("PlayEmote"):Connect(function()
+	local name = player:GetAttribute("PlayEmote")
+	if typeof(name) == "string" and anim then
+		anim:PlayEmote(name)
+	end
+end)
+
 print("[PlayerClient] Ready")

@@ -69,6 +69,7 @@ local function defaultProfile(): Profile
 			reduceFx = false,
 		},
 		tutorialDone = false,
+		meta = {},
 		currentStage = 1,
 	}
 end
@@ -160,6 +161,9 @@ local function reconcile(raw: any): Profile
 	end
 	if raw.tutorialDone == true then
 		d.tutorialDone = true
+	end
+	if typeof(raw.meta) == "table" then
+		d.meta = raw.meta
 	end
 	if typeof(raw.currentStage) == "number" then
 		d.currentStage = math.clamp(math.floor(raw.currentStage), 1, 99)

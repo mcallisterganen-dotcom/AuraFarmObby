@@ -53,8 +53,8 @@ function TerrainGenerator:_voidKill(parent: Instance)
 	local kill = part({
 		Name = "WorldVoidKill",
 		Parent = parent,
-		Size = Vector3.new(5000, 80, 5000),
-		Position = Vector3.new(200, -25, -200),
+		Size = Vector3.new(6000, 120, 6000),
+		Position = Vector3.new(200, -40, -200),
 		Color = C.Danger,
 		Material = Enum.Material.SmoothPlastic,
 		CanCollide = true,
@@ -384,7 +384,7 @@ function TerrainGenerator:_lobby(parent: Instance)
 		Position = spawn + Vector3.new(0, -10, 0),
 		Color = C.Ground,
 		Material = M.Ground,
-		CanCollide = true,
+		CanCollide = false, -- path floor comes from InteractionService
 	})
 	-- Aura pillars
 	for i = 0, 7 do

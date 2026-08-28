@@ -20,6 +20,8 @@ local RateLimiter = require(Shared:WaitForChild("RateLimiter"))
 local StageBuilder = require(script.Parent:WaitForChild("StageBuilder"))
 local TerrainGenerator = require(script.Parent:WaitForChild("TerrainGenerator"))
 local StageStreamer = require(script.Parent:WaitForChild("StageStreamer"))
+local CollisionService = require(script.Parent:WaitForChild("CollisionService"))
+local InteractionService = require(script.Parent:WaitForChild("InteractionService"))
 local PlayerData = require(script.Parent:WaitForChild("PlayerData"))
 local TrailService = require(script.Parent:WaitForChild("TrailService"))
 local QuestService = require(script.Parent:WaitForChild("QuestService"))
@@ -27,6 +29,7 @@ local WeatherService = require(script.Parent:WaitForChild("WeatherService"))
 local OrderedStats = require(script.Parent:WaitForChild("OrderedStats"))
 local OfflineEarnings = require(script.Parent:WaitForChild("OfflineEarnings"))
 local AuraTheme = require(Shared:WaitForChild("AuraTheme"))
+local WorldRules = require(Shared:WaitForChild("WorldRules"))
 
 Remotes.InitServer()
 PlayerData.Init()
@@ -85,6 +88,27 @@ type RunState = {
 
 local runs: { [number]: RunState } = {}
 local stagesRoot: Folder? = nil
+
+local function grantAura(player: Player, amount: number, _src: string?)
+	local profile = PlayerData.Get(player)
+	if not profile or amount == 0 then
+		return
+	end
+	profile.aura += math.floor(amount)
+	PlayerData.MarkDirty(player)
+	AuraUpdate:FireClient(player, profile.aura, profile.coins)
+end
+
+local function grantCoins(player: Player, amount: number)
+	local profile = PlayerData.Get(player)
+	if not profile or amount == 0 then
+		return
+	end
+	profile.coins += math.floor(amount)
+	PlayerData.MarkDirty(player)
+	AuraUpdate:FireClient(player, profile.aura, profile.coins)
+end
+
 
 local function toast(player: Player, text: string, kind: string?)
 	Toast:FireClient(player, text, kind or "info")
@@ -366,7 +390,18 @@ end
 local function onKill(player: Player)
 	local run = runs[player.UserId]
 	local profile = PlayerData.Get(player)
-	if not run or not profile then
+	if not profile then
+		return
+	end
+	if not run then
+		local char = player.Character
+		if char then
+			local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+			if hrp then
+				hrp.CFrame = CFrame.new(StageConfig.LobbySpawn + Vector3.new(0, 4, 0))
+				hrp.AssemblyLinearVelocity = Vector3.zero
+			end
+		end
 		return
 	end
 	local now = os.clock()
@@ -403,14 +438,14 @@ local function wireCharacter(player: Player, char: Model)
 			local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
 			if hrp then
 				local run = runs[player.UserId]
-				local floorY = 4
+				local floorY = WorldRules.AbsoluteKillY
 				if run then
 					local def = StageConfig.Get(run.stageId)
 					if def then
-						floorY = def.baseY - 10
+						floorY = math.min(floorY, def.baseY - WorldRules.FallMarginStuds)
 					end
 				end
-				if hrp.Position.Y < floorY then
+				if hrp.Position.Y < floorY or hrp.Position.Y < WorldRules.AbsoluteKillY then
 					onKill(player)
 				end
 			end
@@ -468,7 +503,7 @@ local function wireStageParts(root: Instance)
 					return
 				end
 				local sid = partStageId(part)
-				if sid and sid ~= run.stageId then
+				if sid ~= nil and sid ~= run.stageId then
 					return
 				end
 				if cp > run.checkpointIndex then
@@ -524,13 +559,14 @@ local function wireStageParts(root: Instance)
 					return
 				end
 				local sid = partStageId(part)
-				if sid and sid ~= run.stageId then
+				if sid ~= nil and sid ~= run.stageId then
 					return
 				end
 				if run.collectedOrbs[orbId] then
 					return
 				end
 				run.collectedOrbs[orbId] = true
+				-- Per-player collect only (orbs stay for other players)
 
 				local base = part:GetAttribute("Aura")
 				if typeof(base) ~= "number" then
@@ -748,14 +784,37 @@ local function wireStageParts(root: Instance)
 end
 
 -- Build world
+CollisionService.Init()
+CollisionService.WatchPlayers()
+
 stagesRoot = StageBuilder.BuildAll()
-wireStageParts(stagesRoot)
 local terrain = TerrainGenerator.new()
 local terrainRoot = terrain:Generate(stagesRoot)
+
+InteractionService.Init({
+	PlayerData = PlayerData,
+	toast = toast,
+	sfx = sfx,
+	pushStats = pushStats,
+	grantAura = grantAura,
+	grantCoins = grantCoins,
+	onKill = onKill,
+	enterStage = enterStage,
+	Remotes = Remotes,
+})
+local interactRoot = InteractionService.Build(workspace)
+
+CollisionService.ClassifyTree(stagesRoot)
+CollisionService.ClassifyTree(terrainRoot)
+CollisionService.ClassifyTree(interactRoot)
+
+wireStageParts(stagesRoot)
+wireStageParts(terrainRoot)
+wireStageParts(interactRoot)
+
 StageStreamer.Init(stagesRoot, terrainRoot)
 StageStreamer.RebuildVisibility()
-wireStageParts(terrainRoot)
-print("[ObbyServer] Multi-stage aura world ready")
+print("[ObbyServer] Multi-stage aura world ready (path-only + interact)")
 
 WeatherService.Start(function(mood)
 	WeatherUpdate:FireAllClients({
