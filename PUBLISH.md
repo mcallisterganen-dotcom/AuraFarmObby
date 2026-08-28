@@ -1,6 +1,14 @@
-# Publish checklist — Aura Farm Obby (v0.5)
+# Publish checklist — Aura Farm Obby (v0.6)
 
 Use this before putting the game on Roblox servers.
+
+## v0.6 aura farm visual/feel
+- [ ] **Void death** — fall off world → WorldVoidKill (`Kill` attr) respawns at checkpoint
+- [ ] **Grounded look** — solid ground plates + room shells; purple void fog, no floating pads in empty sky
+- [ ] **Grip paths** — run surfaces SmoothPlastic + friction; **neon edges only** (not full neon floors)
+- [ ] **R15 run** — official run anim `rbxassetid://507767714` (AnimationSystem disables stock Animate)
+- [ ] **Stage focus** — StageStreamer hides inactive stage rooms; fog tightens on current stage
+- [ ] AuraTheme lighting on boot (ClockTime/fog/bloom identity)
 
 ## v0.5 multi-stage smoke test
 - [ ] Lobby hub pads select Stage 1 / 2 / 3

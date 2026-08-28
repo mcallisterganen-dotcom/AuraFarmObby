@@ -19,16 +19,21 @@ local RateLimiter = require(Shared:WaitForChild("RateLimiter"))
 
 local StageBuilder = require(script.Parent:WaitForChild("StageBuilder"))
 local TerrainGenerator = require(script.Parent:WaitForChild("TerrainGenerator"))
+local StageStreamer = require(script.Parent:WaitForChild("StageStreamer"))
 local PlayerData = require(script.Parent:WaitForChild("PlayerData"))
 local TrailService = require(script.Parent:WaitForChild("TrailService"))
 local QuestService = require(script.Parent:WaitForChild("QuestService"))
 local WeatherService = require(script.Parent:WaitForChild("WeatherService"))
 local OrderedStats = require(script.Parent:WaitForChild("OrderedStats"))
 local OfflineEarnings = require(script.Parent:WaitForChild("OfflineEarnings"))
+local AuraTheme = require(Shared:WaitForChild("AuraTheme"))
 
 Remotes.InitServer()
 PlayerData.Init()
 OrderedStats.Init()
+
+AuraTheme.ApplyLighting(Lighting)
+AuraTheme.EnsurePostFx(Lighting)
 
 local remoteFolder = ReplicatedStorage:WaitForChild("ObbyRemotes")
 local function R(name: string): RemoteEvent
@@ -210,8 +215,9 @@ local function applyStageLighting(stageId: number)
 	pcall(function()
 		Lighting.ClockTime = def.clockTime
 		Lighting.FogColor = def.fogColor
-		Lighting.FogEnd = if def.theme == "neon" then 400 else 600
 		Lighting.FogStart = 40
+		Lighting.FogEnd = 220
+		Lighting.Ambient = Color3.fromRGB(70, 50, 110)
 	end)
 end
 
@@ -267,6 +273,7 @@ local function enterStage(player: Player, stageId: number, opts: { silent: boole
 	run.invulnUntil = os.clock() + (ObbyConfig.RespawnInvulnSec or 1.5)
 	runs[player.UserId] = run
 	applyStageLighting(stageId)
+	StageStreamer.Focus(player, stageId)
 	if player.Character then
 		teleportTo(player, getSpawnCF(run))
 		applyTrail(player)
@@ -727,8 +734,11 @@ end
 stagesRoot = StageBuilder.BuildAll()
 wireStageParts(stagesRoot)
 local terrain = TerrainGenerator.new()
-terrain:Generate(stagesRoot)
-print("[ObbyServer] Multi-stage world ready")
+local terrainRoot = terrain:Generate(stagesRoot)
+StageStreamer.Init(stagesRoot, terrainRoot)
+StageStreamer.RebuildVisibility()
+wireStageParts(terrainRoot)
+print("[ObbyServer] Multi-stage aura world ready")
 
 WeatherService.Start(function(mood)
 	WeatherUpdate:FireAllClients({
@@ -753,6 +763,7 @@ local function onPlayer(player: Player)
 	runs[player.UserId] = newRun(stageId)
 	profile.currentStage = stageId
 	applyStageLighting(stageId)
+	StageStreamer.Focus(player, stageId)
 
 	local offline = OfflineEarnings.Collect(profile)
 	if offline and offline.aura and offline.aura > 0 then
@@ -793,6 +804,7 @@ Players.PlayerAdded:Connect(onPlayer)
 
 Players.PlayerRemoving:Connect(function(player)
 	runs[player.UserId] = nil
+	StageStreamer.ClearPlayer(player)
 end)
 
 -- Playtime tick for daily quest

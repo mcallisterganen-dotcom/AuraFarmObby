@@ -1,0 +1,6981 @@
+<roblox version="4">
+  <Item class="Lighting" referent="0">
+    <Properties>
+      <string name="Name">Lighting</string>
+      <Color3 name="Ambient">
+        <R>0.27</R>
+        <G>0.2</G>
+        <B>0.43</B>
+      </Color3>
+      <float name="Brightness">1.6</float>
+      <float name="ClockTime">20.5</float>
+      <Color3 name="FogColor">
+        <R>0.16</R>
+        <G>0.09</G>
+        <B>0.27</B>
+      </Color3>
+      <float name="FogEnd">280</float>
+      <float name="FogStart">60</float>
+      <bool name="GlobalShadows">true</bool>
+      <Color3 name="OutdoorAmbient">
+        <R>0.35</R>
+        <G>0.27</G>
+        <B>0.55</B>
+      </Color3>
+      <token name="Technology">3</token>
+    </Properties>
+  </Item>
+  <Item class="ReplicatedStorage" referent="1">
+    <Properties>
+      <string name="Name">ReplicatedStorage</string>
+    </Properties>
+    <Item class="Folder" referent="2">
+      <Properties>
+        <string name="Name">Shared</string>
+      </Properties>
+      <Item class="ModuleScript" referent="3">
+        <Properties>
+          <string name="Name">Achievements</string>
+          <string name="Source"><![CDATA[-- Achievement definitions.
+
+local Achievements = {}
+
+export type AchievementDef = {
+	id: string,
+	name: string,
+	description: string,
+	stat: string,
+	threshold: number,
+	rewardAura: number,
+	rewardCoins: number,
+}
+
+Achievements.List = {
+	{
+		id = "first_clear",
+		name = "First Steps",
+		description = "Clear any stage once",
+		stat = "finishes",
+		threshold = 1,
+		rewardAura = 15,
+		rewardCoins = 5,
+	},
+	{
+		id = "clear_5",
+		name = "Warming Up",
+		description = "Clear stages 5 times total",
+		stat = "finishes",
+		threshold = 5,
+		rewardAura = 30,
+		rewardCoins = 10,
+	},
+	{
+		id = "clear_25",
+		name = "Parkour Regular",
+		description = "25 total clears",
+		stat = "finishes",
+		threshold = 25,
+		rewardAura = 80,
+		rewardCoins = 25,
+	},
+	{
+		id = "orb_10",
+		name = "Orb Curious",
+		description = "Collect 10 aura orbs",
+		stat = "orbs",
+		threshold = 10,
+		rewardAura = 10,
+		rewardCoins = 5,
+	},
+	{
+		id = "orb_100",
+		name = "Orb Hoarder",
+		description = "Collect 100 aura orbs",
+		stat = "orbs",
+		threshold = 100,
+		rewardAura = 50,
+		rewardCoins = 20,
+	},
+	{
+		id = "death_1",
+		name = "It Happens",
+		description = "Die to a kill brick once",
+		stat = "death_count",
+		threshold = 1,
+		rewardAura = 5,
+		rewardCoins = 0,
+	},
+	{
+		id = "death_25",
+		name = "Pain is Learning",
+		description = "25 kill-brick deaths",
+		stat = "death_count",
+		threshold = 25,
+		rewardAura = 25,
+		rewardCoins = 10,
+	},
+	{
+		id = "trail_3",
+		name = "Fashion Start",
+		description = "Own 3 trails",
+		stat = "trails",
+		threshold = 3,
+		rewardAura = 20,
+		rewardCoins = 10,
+	},
+	{
+		id = "trail_all",
+		name = "Closet Full",
+		description = "Own 8 trails",
+		stat = "trails",
+		threshold = 8,
+		rewardAura = 100,
+		rewardCoins = 40,
+	},
+	{
+		id = "streak_3",
+		name = "Comeback Kid",
+		description = "3-day login streak",
+		stat = "streak",
+		threshold = 3,
+		rewardAura = 25,
+		rewardCoins = 10,
+	},
+	{
+		id = "streak_7",
+		name = "Dedicated",
+		description = "7-day login streak",
+		stat = "streak",
+		threshold = 7,
+		rewardAura = 70,
+		rewardCoins = 30,
+	},
+	{
+		id = "stages_2",
+		name = "Canyon Bound",
+		description = "Clear 2 different stages",
+		stat = "stages",
+		threshold = 2,
+		rewardAura = 40,
+		rewardCoins = 15,
+	},
+	{
+		id = "stages_3",
+		name = "Spire Ascendant",
+		description = "Clear all 3 stages",
+		stat = "stages",
+		threshold = 3,
+		rewardAura = 150,
+		rewardCoins = 60,
+	},
+	{
+		id = "aura_500",
+		name = "Aura Bank",
+		description = "Hold 500 Aura at once",
+		stat = "aura",
+		threshold = 500,
+		rewardAura = 50,
+		rewardCoins = 20,
+	},
+	{
+		id = "speed_60",
+		name = "Sub-Minute",
+		description = "Any stage best under 60s",
+		stat = "best_time",
+		threshold = 60,
+		rewardAura = 40,
+		rewardCoins = 15,
+	},
+} :: { AchievementDef }
+
+function Achievements.Get(id: string): AchievementDef?
+	for _, a in Achievements.List do
+		if a.id == id then
+			return a
+		end
+	end
+	return nil
+end
+
+return Achievements
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="4">
+        <Properties>
+          <string name="Name">AnimationConfig</string>
+          <string name="Source"><![CDATA[-- Official Roblox R15 default animation asset IDs (Animate script catalog).
+-- Source: Roblox default character Animate + DevForum R15 ID lists.
+
+local AnimationConfig = {}
+
+-- These are the standard R15 defaults shipped with characters.
+AnimationConfig.Ids = {
+	Idle = "rbxassetid://507766666",
+	Idle2 = "rbxassetid://507766951",
+	Walk = "rbxassetid://507777826",
+	Run = "rbxassetid://507767714",
+	Jump = "rbxassetid://507765000",
+	Fall = "rbxassetid://507767968",
+	Climb = "rbxassetid://507765644",
+	Swim = "rbxassetid://507784897",
+	SwimIdle = "rbxassetid://507785072",
+	-- Emotes (built-in tool-free)
+	Wave = "rbxassetid://507770239",
+	Point = "rbxassetid://507770453",
+	Dance = "rbxassetid://507771019",
+	Dance2 = "rbxassetid://507776043",
+	Dance3 = "rbxassetid://507777268",
+	Laugh = "rbxassetid://507770818",
+	Cheer = "rbxassetid://507770677",
+}
+
+AnimationConfig.EmoteList = { "Wave", "Point", "Dance", "Laugh", "Cheer" }
+
+-- Blend / playback
+AnimationConfig.FadeTime = 0.12
+AnimationConfig.WalkSpeedThreshold = 0.5
+AnimationConfig.RunSpeedThreshold = 18 -- humanoid WalkSpeed while sprinting
+AnimationConfig.Priorities = {
+	Idle = Enum.AnimationPriority.Idle,
+	Walk = Enum.AnimationPriority.Movement,
+	Run = Enum.AnimationPriority.Movement,
+	Jump = Enum.AnimationPriority.Action,
+	Fall = Enum.AnimationPriority.Movement,
+	Emote = Enum.AnimationPriority.Action4,
+}
+
+return AnimationConfig
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="5">
+        <Properties>
+          <string name="Name">AuraTheme</string>
+          <string name="Source"><![CDATA[-- Global "Aura Farm" visual identity — purple void, soft bloom, farm-core vibe.
+-- Single source of truth for lighting / fog / materials that feel on-brand.
+
+local AuraTheme = {}
+
+AuraTheme.Name = "Aura Farm"
+
+-- Core palette
+AuraTheme.Colors = {
+	Void = Color3.fromRGB(12, 8, 22),
+	VoidDeep = Color3.fromRGB(6, 4, 14),
+	Fog = Color3.fromRGB(40, 24, 70),
+	Ambient = Color3.fromRGB(70, 50, 110),
+	Outdoor = Color3.fromRGB(90, 70, 140),
+	Accent = Color3.fromRGB(180, 120, 255),
+	AccentHot = Color3.fromRGB(255, 100, 200),
+	AccentCool = Color3.fromRGB(100, 220, 255),
+	Gold = Color3.fromRGB(255, 210, 120),
+	Path = Color3.fromRGB(55, 40, 90), -- dark slate run surface (NOT pure neon)
+	PathEdge = Color3.fromRGB(160, 100, 255),
+	Safe = Color3.fromRGB(80, 200, 140),
+	Danger = Color3.fromRGB(255, 60, 100),
+	Ground = Color3.fromRGB(28, 20, 48),
+	Rock = Color3.fromRGB(45, 35, 70),
+}
+
+-- Materials that WORK for parkour (Neon is slippery / hard to read as floor)
+AuraTheme.Materials = {
+	Path = Enum.Material.SmoothPlastic, -- grippy, readable
+	PathAccent = Enum.Material.Neon, -- edges only
+	Metal = Enum.Material.Metal,
+	Ground = Enum.Material.Slate,
+	Rock = Enum.Material.Basalt,
+	Glow = Enum.Material.Neon,
+	Force = Enum.Material.ForceField,
+	Glass = Enum.Material.Glass,
+}
+
+-- Default atmosphere when not in a stage-specific mood
+AuraTheme.Lighting = {
+	ClockTime = 20.5, -- night aura farm
+	Brightness = 1.6,
+	Ambient = AuraTheme.Colors.Ambient,
+	OutdoorAmbient = AuraTheme.Colors.Outdoor,
+	FogColor = AuraTheme.Colors.Fog,
+	FogStart = 60,
+	FogEnd = 280, -- tight = focus on current room
+	EnvironmentDiffuseScale = 0.4,
+	EnvironmentSpecularScale = 0.3,
+	ShadowSoftness = 0.4,
+	ExposureCompensation = 0.15,
+}
+
+AuraTheme.Bloom = {
+	Intensity = 0.55,
+	Size = 28,
+	Threshold = 0.85,
+}
+
+AuraTheme.ColorCorrection = {
+	Brightness = 0.02,
+	Contrast = 0.12,
+	Saturation = 0.2,
+	TintColor = Color3.fromRGB(230, 210, 255),
+}
+
+-- Stage room isolation
+AuraTheme.Room = {
+	-- How far from originX a room's content lives
+	HalfWidth = 90,
+	-- Fog/end focus distance while inside a room
+	FocusFogEnd = 220,
+	LobbyFogEnd = 320,
+}
+
+function AuraTheme.ApplyLighting(lighting: Lighting)
+	local L = AuraTheme.Lighting
+	lighting.ClockTime = L.ClockTime
+	lighting.Brightness = L.Brightness
+	lighting.Ambient = L.Ambient
+	lighting.OutdoorAmbient = L.OutdoorAmbient
+	lighting.FogColor = L.FogColor
+	lighting.FogStart = L.FogStart
+	lighting.FogEnd = L.FogEnd
+	pcall(function()
+		lighting.EnvironmentDiffuseScale = L.EnvironmentDiffuseScale
+		lighting.EnvironmentSpecularScale = L.EnvironmentSpecularScale
+		lighting.ShadowSoftness = L.ShadowSoftness
+		lighting.ExposureCompensation = L.ExposureCompensation
+	end)
+	-- Technology: Future looks best for neon accents; ShadowMap is safer
+	pcall(function()
+		lighting.Technology = Enum.Technology.ShadowMap
+	end)
+end
+
+function AuraTheme.EnsurePostFx(lighting: Lighting)
+	local bloom = lighting:FindFirstChild("AuraBloom")
+	if not bloom then
+		bloom = Instance.new("BloomEffect")
+		bloom.Name = "AuraBloom"
+		bloom.Parent = lighting
+	end
+	bloom.Intensity = AuraTheme.Bloom.Intensity
+	bloom.Size = AuraTheme.Bloom.Size
+	bloom.Threshold = AuraTheme.Bloom.Threshold
+
+	local cc = lighting:FindFirstChild("AuraCC")
+	if not cc then
+		cc = Instance.new("ColorCorrectionEffect")
+		cc.Name = "AuraCC"
+		cc.Parent = lighting
+	end
+	cc.Brightness = AuraTheme.ColorCorrection.Brightness
+	cc.Contrast = AuraTheme.ColorCorrection.Contrast
+	cc.Saturation = AuraTheme.ColorCorrection.Saturation
+	cc.TintColor = AuraTheme.ColorCorrection.TintColor
+
+	local atmo = lighting:FindFirstChildOfClass("Atmosphere")
+	if not atmo then
+		atmo = Instance.new("Atmosphere")
+		atmo.Parent = lighting
+	end
+	atmo.Density = 0.35
+	atmo.Offset = 0.1
+	atmo.Color = Color3.fromRGB(90, 60, 140)
+	atmo.Decay = Color3.fromRGB(40, 20, 80)
+	atmo.Glare = 0.2
+	atmo.Haze = 1.5
+end
+
+return AuraTheme
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="6">
+        <Properties>
+          <string name="Name">CosmeticsCatalog</string>
+          <string name="Source"><![CDATA[-- Trail / aura cosmetics. Buy with Aura; equip for a visible trail.
+
+local CosmeticsCatalog = {}
+
+export type TrailDef = {
+	id: string,
+	name: string,
+	description: string,
+	priceAura: number,
+	color: Color3,
+	color2: Color3?,
+	lightEmission: number?,
+	widthScale: number?,
+	lifetime: number?,
+	rarity: string?,
+}
+
+local TRAILS: { TrailDef } = {
+	{
+		id = "default",
+		name = "Soft Mist",
+		description = "Starter trail",
+		priceAura = 0,
+		color = Color3.fromRGB(200, 200, 220),
+		color2 = Color3.fromRGB(160, 160, 180),
+		lightEmission = 0.2,
+		widthScale = 0.4,
+		lifetime = 0.5,
+		rarity = "Common",
+	},
+	{
+		id = "violet",
+		name = "Violet Drift",
+		description = "Classic aura purple",
+		priceAura = 40,
+		color = Color3.fromRGB(170, 90, 255),
+		color2 = Color3.fromRGB(120, 40, 200),
+		lightEmission = 0.5,
+		widthScale = 0.55,
+		lifetime = 0.65,
+		rarity = "Common",
+	},
+	{
+		id = "meadow",
+		name = "Meadow Glow",
+		description = "Stage 1 green breeze",
+		priceAura = 60,
+		color = Color3.fromRGB(120, 255, 160),
+		color2 = Color3.fromRGB(60, 180, 100),
+		lightEmission = 0.45,
+		widthScale = 0.5,
+		lifetime = 0.6,
+		rarity = "Common",
+	},
+	{
+		id = "ember",
+		name = "Ember Dash",
+		description = "Warm speed streak",
+		priceAura = 100,
+		color = Color3.fromRGB(255, 140, 60),
+		color2 = Color3.fromRGB(255, 60, 40),
+		lightEmission = 0.7,
+		widthScale = 0.6,
+		lifetime = 0.7,
+		rarity = "Rare",
+	},
+	{
+		id = "canyon",
+		name = "Crystal Wake",
+		description = "Stage 2 canyon shimmer",
+		priceAura = 140,
+		color = Color3.fromRGB(180, 140, 255),
+		color2 = Color3.fromRGB(100, 60, 200),
+		lightEmission = 0.75,
+		widthScale = 0.6,
+		lifetime = 0.75,
+		rarity = "Rare",
+	},
+	{
+		id = "ocean",
+		name = "Tide Runner",
+		description = "Cool blue flow",
+		priceAura = 160,
+		color = Color3.fromRGB(80, 180, 255),
+		color2 = Color3.fromRGB(40, 100, 220),
+		lightEmission = 0.6,
+		widthScale = 0.55,
+		lifetime = 0.7,
+		rarity = "Rare",
+	},
+	{
+		id = "neon",
+		name = "Neon Pulse",
+		description = "Stage 3 cyber trail",
+		priceAura = 220,
+		color = Color3.fromRGB(80, 255, 230),
+		color2 = Color3.fromRGB(255, 60, 140),
+		lightEmission = 0.9,
+		widthScale = 0.7,
+		lifetime = 0.8,
+		rarity = "Epic",
+	},
+	{
+		id = "gold",
+		name = "Gold Rush",
+		description = "Show-off finish flex",
+		priceAura = 300,
+		color = Color3.fromRGB(255, 220, 80),
+		color2 = Color3.fromRGB(255, 160, 40),
+		lightEmission = 0.85,
+		widthScale = 0.65,
+		lifetime = 0.85,
+		rarity = "Epic",
+	},
+	{
+		id = "void",
+		name = "Void Ribbon",
+		description = "Dark prestige trail",
+		priceAura = 450,
+		color = Color3.fromRGB(40, 20, 60),
+		color2 = Color3.fromRGB(160, 80, 255),
+		lightEmission = 0.95,
+		widthScale = 0.8,
+		lifetime = 1.0,
+		rarity = "Legendary",
+	},
+	{
+		id = "rainbow",
+		name = "Prism Storm",
+		description = "Everything, loudly",
+		priceAura = 600,
+		color = Color3.fromRGB(255, 80, 180),
+		color2 = Color3.fromRGB(80, 255, 220),
+		lightEmission = 1,
+		widthScale = 0.9,
+		lifetime = 1.1,
+		rarity = "Legendary",
+	},
+}
+
+local byId: { [string]: TrailDef } = {}
+for _, t in TRAILS do
+	byId[t.id] = t
+end
+
+function CosmeticsCatalog.All(): { TrailDef }
+	return TRAILS
+end
+
+function CosmeticsCatalog.Get(id: string): TrailDef?
+	return byId[id]
+end
+
+function CosmeticsCatalog.GetTrail(id: string): TrailDef?
+	return byId[id]
+end
+
+return CosmeticsCatalog
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="7">
+        <Properties>
+          <string name="Name">DailyQuests</string>
+          <string name="Source"><![CDATA[-- Daily quest pool.
+
+local DailyQuests = {}
+
+export type QuestDef = {
+	id: string,
+	name: string,
+	description: string,
+	stat: string,
+	target: number,
+	rewardAura: number,
+	rewardCoins: number,
+}
+
+local POOL: { QuestDef } = {
+	{
+		id = "d_finish_1",
+		name = "Daily Clear",
+		description = "Finish a stage once",
+		stat = "finishes",
+		target = 1,
+		rewardAura = 20,
+		rewardCoins = 8,
+	},
+	{
+		id = "d_finish_3",
+		name = "Triple Clear",
+		description = "Finish stages 3 times",
+		stat = "finishes",
+		target = 3,
+		rewardAura = 45,
+		rewardCoins = 15,
+	},
+	{
+		id = "d_orbs_10",
+		name = "Orb Route",
+		description = "Collect 10 orbs",
+		stat = "orbs",
+		target = 10,
+		rewardAura = 25,
+		rewardCoins = 10,
+	},
+	{
+		id = "d_orbs_25",
+		name = "Orb Marathon",
+		description = "Collect 25 orbs",
+		stat = "orbs",
+		target = 25,
+		rewardAura = 50,
+		rewardCoins = 18,
+	},
+	{
+		id = "d_cp_5",
+		name = "Checkpoint Tour",
+		description = "Hit 5 new checkpoints",
+		stat = "checkpoints",
+		target = 5,
+		rewardAura = 20,
+		rewardCoins = 8,
+	},
+	{
+		id = "d_play_10",
+		name = "Session Time",
+		description = "Play for 10 minutes",
+		stat = "playMinutes",
+		target = 10,
+		rewardAura = 30,
+		rewardCoins = 12,
+	},
+	{
+		id = "d_play_20",
+		name = "Long Session",
+		description = "Play for 20 minutes",
+		stat = "playMinutes",
+		target = 20,
+		rewardAura = 55,
+		rewardCoins = 20,
+	},
+}
+
+function DailyQuests.Pool(): { QuestDef }
+	return POOL
+end
+
+function DailyQuests.PickForDay(seed: number): { QuestDef }
+	local rng = Random.new(seed)
+	local pool = table.clone(POOL)
+	-- shuffle
+	for i = #pool, 2, -1 do
+		local j = rng:NextInteger(1, i)
+		pool[i], pool[j] = pool[j], pool[i]
+	end
+	return { pool[1], pool[2], pool[3] }
+end
+
+function DailyQuests.Get(id: string): QuestDef?
+	for _, q in POOL do
+		if q.id == id then
+			return q
+		end
+	end
+	return nil
+end
+
+return DailyQuests
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="8">
+        <Properties>
+          <string name="Name">FormatUtil</string>
+          <string name="Source"><![CDATA[-- Number / time display helpers (gear-clicker FormatUtil vibe).
+
+local FormatUtil = {}
+
+function FormatUtil.Comma(n: number): string
+	n = math.floor(n)
+	local sign = ""
+	if n < 0 then
+		sign = "-"
+		n = -n
+	end
+	local s = tostring(n)
+	local out = s:reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
+	return sign .. out
+end
+
+function FormatUtil.Compact(n: number): string
+	local abs = math.abs(n)
+	local sign = n < 0 and "-" or ""
+	if abs < 1000 then
+		return sign .. tostring(math.floor(abs))
+	elseif abs < 1e6 then
+		return sign .. string.format("%.1fK", abs / 1e3)
+	elseif abs < 1e9 then
+		return sign .. string.format("%.1fM", abs / 1e6)
+	end
+	return sign .. string.format("%.1fB", abs / 1e9)
+end
+
+function FormatUtil.Time(sec: number): string
+	sec = math.max(0, sec)
+	local m = math.floor(sec / 60)
+	local s = sec % 60
+	return string.format("%d:%05.2f", m, s)
+end
+
+return FormatUtil
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="9">
+        <Properties>
+          <string name="Name">MovementConfig</string>
+          <string name="Source"><![CDATA[-- Sprint / crouch / slide — snappy parkour feel.
+
+local MovementConfig = {}
+
+MovementConfig.BaseWalkSpeed = 16
+MovementConfig.SprintMultiplier = 1.55 -- ~24.8
+MovementConfig.CrouchMultiplier = 0.55
+MovementConfig.SlideDuration = 0.55
+MovementConfig.SlideSpeedBoost = 1.35
+MovementConfig.SlideCooldown = 0.85
+MovementConfig.JumpCooldown = 50
+MovementConfig.SprintFovBoost = 8
+MovementConfig.CrouchHipHeight = 0.5 -- relative adjust if supported
+
+-- Camera
+MovementConfig.Camera = {
+	SprintFov = 78,
+	DefaultFov = 70,
+	TweenSpeed = 0.18,
+}
+
+return MovementConfig
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="10">
+        <Properties>
+          <string name="Name">ObbyConfig</string>
+          <string name="Source"><![CDATA[-- Aura Farm Obby — shared constants (client + server)
+
+local ObbyConfig = {}
+
+ObbyConfig.GameName = "Aura Farm Obby"
+ObbyConfig.Version = "0.6.0"
+
+-- World / spawn (legacy single-stage names still used as fallbacks)
+ObbyConfig.StageFolderName = "AuraFarmStages"
+ObbyConfig.StartSpawnName = "StartSpawn"
+ObbyConfig.StartCFrame = CFrame.new(0, 16, 28)
+ObbyConfig.LobbyCFrame = CFrame.new(0, 10, 40)
+
+-- Gameplay tags (attributes on BaseParts)
+ObbyConfig.CheckpointTag = "CheckpointIndex" -- number
+ObbyConfig.FinishTag = "Finish" -- boolean
+ObbyConfig.KillTag = "Kill" -- boolean
+ObbyConfig.OrbTag = "Orb" -- boolean
+ObbyConfig.BounceTag = "Bounce" -- number (upward velocity)
+ObbyConfig.PortalTag = "PortalToStage" -- number
+ObbyConfig.SelectStageTag = "SelectStage" -- number
+
+-- Economy defaults (per-stage overrides in StageConfig)
+ObbyConfig.OrbAura = 2
+ObbyConfig.LuckyOrbChance = 0.08
+ObbyConfig.LuckyOrbMult = 3
+ObbyConfig.FinishAuraBonus = 25
+ObbyConfig.FinishCoinBonus = 10
+ObbyConfig.StartingAura = 0
+ObbyConfig.StartingCoins = 0
+ObbyConfig.ComboWindowSec = 4
+ObbyConfig.ComboAuraBonus = 1 -- extra aura per combo step
+
+-- Anti-cheat / run rules (stage can override)
+ObbyConfig.MinFinishTimeSec = 10
+ObbyConfig.MinCheckpointForFinish = 1
+ObbyConfig.KillDebounceSec = 1.25
+ObbyConfig.FinishTouchDebounceSec = 2
+ObbyConfig.OrbTouchDebounceSec = 0.5
+ObbyConfig.MaxFinishDistance = 18
+ObbyConfig.RespawnInvulnSec = 1.5
+ObbyConfig.DefaultStageId = 1
+
+-- UI
+ObbyConfig.ToastDuration = 3
+
+ObbyConfig.Colors = {
+	Aura = Color3.fromRGB(190, 140, 255),
+	Good = Color3.fromRGB(120, 255, 160),
+	Bad = Color3.fromRGB(255, 100, 110),
+	Info = Color3.fromRGB(140, 180, 255),
+	Coin = Color3.fromRGB(255, 210, 90),
+	Finish = Color3.fromRGB(255, 220, 100),
+}
+
+return ObbyConfig
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="11">
+        <Properties>
+          <string name="Name">ParkourKit</string>
+          <string name="Source"><![CDATA[-- Parkour primitives — AURA FARM materials.
+-- Run surfaces = SmoothPlastic (grip + readable). Neon ONLY on edges/accents.
+-- Tags match ObbyConfig.
+
+local ObbyConfig = require(script.Parent:WaitForChild("ObbyConfig"))
+local AuraTheme = require(script.Parent:WaitForChild("AuraTheme"))
+
+local ParkourKit = {}
+
+export type Theme = {
+	path: Color3,
+	accent: Color3,
+	kill: Color3,
+	metal: Color3,
+	wood: Color3,
+	ground: Color3?,
+}
+
+function ParkourKit.DefaultTheme(): Theme
+	local C = AuraTheme.Colors
+	return {
+		path = C.Path,
+		accent = C.Accent,
+		kill = C.Danger,
+		metal = Color3.fromRGB(70, 60, 100),
+		wood = Color3.fromRGB(90, 60, 120),
+		ground = C.Ground,
+	}
+end
+
+function ParkourKit.Part(props: { [string]: any }): BasePart
+	local p = Instance.new("Part")
+	p.Anchored = true
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Material = props.Material or AuraTheme.Materials.Path
+	p.Color = props.Color or AuraTheme.Colors.Path
+	p.Size = props.Size or Vector3.new(4, 1, 4)
+	p.CFrame = props.CFrame or CFrame.new(props.Position or Vector3.zero)
+	p.Name = props.Name or "Part"
+	p.CanCollide = if props.CanCollide == nil then true else props.CanCollide
+	p.Transparency = props.Transparency or 0
+	p.CastShadow = props.CastShadow ~= false
+	-- Critical: custom physical properties so neon-looking pads aren't ice
+	if props.Friction or props.Material == Enum.Material.SmoothPlastic or not props.Material then
+		p.CustomPhysicalProperties = PhysicalProperties.new(
+			props.Density or 1,
+			props.Friction or 1.1, -- grippy
+			props.Elasticity or 0,
+			props.FrictionWeight or 2,
+			props.ElasticityWeight or 1
+		)
+	end
+	if props.Shape then
+		p.Shape = props.Shape
+	end
+	p.Parent = props.Parent
+	if props.Attribute then
+		for k, v in props.Attribute do
+			p:SetAttribute(k, v)
+		end
+	end
+	return p
+end
+
+function ParkourKit.Light(parent: Instance, pos: Vector3, color: Color3, brightness: number?, range: number?)
+	local a = Instance.new("Part")
+	a.Name = "LightAnchor"
+	a.Anchored = true
+	a.CanCollide = false
+	a.Transparency = 1
+	a.Size = Vector3.new(0.4, 0.4, 0.4)
+	a.Position = pos
+	a.CastShadow = false
+	a.Parent = parent
+	local l = Instance.new("PointLight")
+	l.Brightness = brightness or 1.4
+	l.Range = range or 18
+	l.Color = color
+	l.Parent = a
+	return a
+end
+
+-- Main run pad: dark plastic body + neon EDGE only (not the whole floor)
+function ParkourKit.Pad(
+	parent: Instance,
+	at: Vector3,
+	size: Vector3,
+	theme: Theme,
+	name: string?
+): BasePart
+	local p = ParkourKit.Part({
+		Name = name or "Pad",
+		Parent = parent,
+		Size = size,
+		Position = at,
+		Color = theme.path,
+		Material = AuraTheme.Materials.Path,
+		Friction = 1.2,
+	})
+	-- edge ring (non-colliding neon lip)
+	local lip = ParkourKit.Part({
+		Name = (name or "Pad") .. "Edge",
+		Parent = parent,
+		Size = Vector3.new(size.X + 0.35, 0.28, size.Z + 0.35),
+		Position = at + Vector3.new(0, size.Y * 0.5 + 0.05, 0),
+		Color = theme.accent,
+		Material = AuraTheme.Materials.PathAccent,
+		CanCollide = false,
+		Transparency = 0.15,
+		CastShadow = false,
+	})
+	-- skip heavy physical props on lip
+	lip.CustomPhysicalProperties = PhysicalProperties.new(0.3, 0.3, 0, 1, 1)
+	return p
+end
+
+function ParkourKit.LongPath(
+	parent: Instance,
+	fromZ: number,
+	toZ: number,
+	y: number,
+	x: number,
+	width: number,
+	theme: Theme
+): BasePart
+	local z0, z1 = math.min(fromZ, toZ), math.max(fromZ, toZ)
+	local len = math.max(z1 - z0, 2)
+	local mid = (z0 + z1) * 0.5
+	return ParkourKit.Pad(parent, Vector3.new(x, y, mid), Vector3.new(width, 1.4, len), theme, "Path")
+end
+
+function ParkourKit.GapRun(
+	parent: Instance,
+	start: Vector3,
+	count: number,
+	gap: number,
+	padSize: Vector3,
+	theme: Theme,
+	xSway: number?
+): number
+	local z = start.Z
+	local y = start.Y
+	local x = start.X
+	local sway = xSway or 0
+	for i = 1, count do
+		local ox = if sway == 0 then 0 else math.sin(i * 1.2) * sway
+		ParkourKit.Pad(parent, Vector3.new(x + ox, y, z), padSize, theme, "GapPad" .. i)
+		z -= padSize.Z * 0.5 + gap + padSize.Z * 0.5
+	end
+	return z
+end
+
+function ParkourKit.Staircase(
+	parent: Instance,
+	start: Vector3,
+	steps: number,
+	stepHeight: number,
+	stepDepth: number,
+	width: number,
+	theme: Theme,
+	dirZ: number?
+): Vector3
+	local dz = dirZ or -1
+	local endPos = start
+	for i = 1, steps do
+		endPos = Vector3.new(
+			start.X,
+			start.Y + (i - 1) * stepHeight,
+			start.Z + dz * (i - 1) * stepDepth
+		)
+		ParkourKit.Pad(parent, endPos, Vector3.new(width, 1.2, stepDepth + 0.25), theme, "Step" .. i)
+	end
+	return endPos
+end
+
+function ParkourKit.Weave(
+	parent: Instance,
+	start: Vector3,
+	count: number,
+	spacing: number,
+	amplitude: number,
+	padSize: Vector3,
+	theme: Theme
+): number
+	local z = start.Z
+	for i = 1, count do
+		local side = if i % 2 == 0 then amplitude else -amplitude
+		ParkourKit.Pad(
+			parent,
+			Vector3.new(start.X + side, start.Y, z),
+			padSize,
+			theme,
+			"Weave" .. i
+		)
+		z -= spacing
+	end
+	return z
+end
+
+function ParkourKit.KillBrick(parent: Instance, at: Vector3, size: Vector3, theme: Theme): BasePart
+	local p = ParkourKit.Part({
+		Name = "KillBrick",
+		Parent = parent,
+		Size = size,
+		Position = at,
+		Color = theme.kill,
+		Material = AuraTheme.Materials.Glow,
+		Friction = 0.3,
+	})
+	p.Transparency = 0.35
+	p:SetAttribute(ObbyConfig.KillTag, true)
+	p:SetAttribute("Kill", true)
+	-- soft red light
+	ParkourKit.Light(parent, at + Vector3.new(0, 2, 0), theme.kill, 1.2, 24)
+	return p
+end
+
+function ParkourKit.MovingPad(
+	parent: Instance,
+	at: Vector3,
+	size: Vector3,
+	theme: Theme,
+	axis: Vector3,
+	amp: number,
+	period: number
+): BasePart
+	local p = ParkourKit.Pad(parent, at, size, theme, "Mover")
+	p:SetAttribute("Moving", true)
+	local base = at
+	local unit = if axis.Magnitude > 0 then axis.Unit else Vector3.xAxis
+	task.spawn(function()
+		local t0 = os.clock()
+		while p.Parent do
+			local t = (os.clock() - t0) / math.max(period, 0.1)
+			local o = math.sin(t * math.pi * 2) * amp
+			p.Position = base + unit * o
+			local edge = p.Parent and p.Parent:FindFirstChild(p.Name .. "Edge")
+			if edge and edge:IsA("BasePart") then
+				edge.Position = p.Position + Vector3.new(0, p.Size.Y * 0.5 + 0.05, 0)
+			end
+			task.wait(0.03)
+		end
+	end)
+	return p
+end
+
+function ParkourKit.Checkpoint(parent: Instance, index: number, at: Vector3, theme: Theme): BasePart
+	local pad = ParkourKit.Part({
+		Name = "Checkpoint" .. index,
+		Parent = parent,
+		Size = Vector3.new(10, 1.5, 10),
+		Position = at,
+		Color = Color3.fromRGB(90, 140, 255),
+		Material = AuraTheme.Materials.Path,
+		Friction = 1.2,
+	})
+	pad:SetAttribute(ObbyConfig.CheckpointTag, index)
+	pad:SetAttribute("CheckpointIndex", index)
+
+	-- glowing ring
+	ParkourKit.Part({
+		Name = "CP" .. index .. "Ring",
+		Parent = parent,
+		Size = Vector3.new(11, 0.4, 11),
+		Position = at + Vector3.new(0, 0.9, 0),
+		Color = theme.accent,
+		Material = AuraTheme.Materials.Glow,
+		CanCollide = false,
+		Transparency = 0.25,
+	})
+
+	local beacon = ParkourKit.Part({
+		Name = "CP" .. index .. "Beacon",
+		Parent = parent,
+		Size = Vector3.new(1.0, 18, 1.0),
+		Position = at + Vector3.new(0, 10, 0),
+		Color = theme.accent,
+		Material = AuraTheme.Materials.Glow,
+		CanCollide = false,
+		Transparency = 0.3,
+	})
+	ParkourKit.Light(parent, at + Vector3.new(0, 10, 0), theme.accent, 2.2, 30)
+
+	local bb = Instance.new("BillboardGui")
+	bb.Name = "CPLabel"
+	bb.Size = UDim2.fromOffset(120, 40)
+	bb.StudsOffset = Vector3.new(0, 14, 0)
+	bb.AlwaysOnTop = true
+	bb.Parent = pad
+	local tl = Instance.new("TextLabel")
+	tl.Size = UDim2.fromScale(1, 1)
+	tl.BackgroundTransparency = 1
+	tl.Font = Enum.Font.GothamBold
+	tl.TextSize = 18
+	tl.TextColor3 = Color3.new(1, 1, 1)
+	tl.TextStrokeTransparency = 0.4
+	tl.Text = "CP " .. index
+	tl.Parent = bb
+	return pad
+end
+
+function ParkourKit.Finish(parent: Instance, at: Vector3, theme: Theme): BasePart
+	local pad = ParkourKit.Part({
+		Name = "Finish",
+		Parent = parent,
+		Size = Vector3.new(16, 1.6, 16),
+		Position = at,
+		Color = AuraTheme.Colors.Gold,
+		Material = AuraTheme.Materials.Path,
+		Friction = 1.2,
+	})
+	pad:SetAttribute(ObbyConfig.FinishTag, true)
+	pad:SetAttribute("Finish", true)
+
+	ParkourKit.Part({
+		Name = "FinishGlow",
+		Parent = parent,
+		Size = Vector3.new(17, 0.4, 17),
+		Position = at + Vector3.new(0, 1.0, 0),
+		Color = AuraTheme.Colors.Gold,
+		Material = AuraTheme.Materials.Glow,
+		CanCollide = false,
+		Transparency = 0.2,
+	})
+
+	ParkourKit.Part({
+		Name = "FinishArchL",
+		Parent = parent,
+		Size = Vector3.new(1.5, 14, 1.5),
+		Position = at + Vector3.new(-8, 7, 0),
+		Color = theme.accent,
+		Material = AuraTheme.Materials.Glow,
+		CanCollide = false,
+	})
+	ParkourKit.Part({
+		Name = "FinishArchR",
+		Parent = parent,
+		Size = Vector3.new(1.5, 14, 1.5),
+		Position = at + Vector3.new(8, 7, 0),
+		Color = theme.accent,
+		Material = AuraTheme.Materials.Glow,
+		CanCollide = false,
+	})
+	ParkourKit.Part({
+		Name = "FinishArchTop",
+		Parent = parent,
+		Size = Vector3.new(18, 1.5, 1.5),
+		Position = at + Vector3.new(0, 14, 0),
+		Color = AuraTheme.Colors.Gold,
+		Material = AuraTheme.Materials.Glow,
+		CanCollide = false,
+	})
+	ParkourKit.Light(parent, at + Vector3.new(0, 12, 0), AuraTheme.Colors.Gold, 3.2, 40)
+
+	local bb = Instance.new("BillboardGui")
+	bb.Size = UDim2.fromOffset(160, 48)
+	bb.StudsOffset = Vector3.new(0, 16, 0)
+	bb.AlwaysOnTop = true
+	bb.Parent = pad
+	local tl = Instance.new("TextLabel")
+	tl.Size = UDim2.fromScale(1, 1)
+	tl.BackgroundTransparency = 1
+	tl.Font = Enum.Font.GothamBold
+	tl.TextSize = 22
+	tl.TextColor3 = AuraTheme.Colors.Gold
+	tl.TextStrokeTransparency = 0.3
+	tl.Text = "FINISH"
+	tl.Parent = bb
+	return pad
+end
+
+function ParkourKit.Orb(parent: Instance, at: Vector3, aura: number?): BasePart
+	local o = ParkourKit.Part({
+		Name = "AuraOrb",
+		Parent = parent,
+		Size = Vector3.new(2.4, 2.4, 2.4),
+		Position = at,
+		Color = AuraTheme.Colors.Accent,
+		Material = AuraTheme.Materials.Glow,
+		Shape = Enum.PartType.Ball,
+		CanCollide = false,
+		CastShadow = false,
+	})
+	o:SetAttribute(ObbyConfig.OrbTag, true)
+	o:SetAttribute("Orb", true)
+	o:SetAttribute("Aura", aura or ObbyConfig.OrbAura or 2)
+	ParkourKit.Light(parent, at, AuraTheme.Colors.Accent, 2, 14)
+
+	task.spawn(function()
+		local base = at
+		local t0 = os.clock()
+		while o.Parent do
+			local t = os.clock() - t0
+			o.CFrame = CFrame.new(base + Vector3.new(0, math.sin(t * 2.2) * 0.7, 0))
+				* CFrame.Angles(0, t * 1.8, 0)
+			task.wait(0.03)
+		end
+	end)
+	return o
+end
+
+function ParkourKit.GuideArrow(parent: Instance, at: Vector3, theme: Theme)
+	ParkourKit.Part({
+		Name = "GuideArrow",
+		Parent = parent,
+		Size = Vector3.new(2.2, 0.35, 4.5),
+		Position = at,
+		Color = theme.accent,
+		Material = AuraTheme.Materials.Glow,
+		CanCollide = false,
+		Transparency = 0.15,
+	})
+end
+
+function ParkourKit.SafetyRails(parent: Instance, at: Vector3, length: number, width: number, theme: Theme)
+	local y = at.Y + 1.3
+	ParkourKit.Part({
+		Name = "RailL",
+		Parent = parent,
+		Size = Vector3.new(0.55, 2.4, length),
+		Position = Vector3.new(at.X - width * 0.5, y, at.Z),
+		Color = theme.metal,
+		Material = AuraTheme.Materials.Metal,
+	})
+	ParkourKit.Part({
+		Name = "RailR",
+		Parent = parent,
+		Size = Vector3.new(0.55, 2.4, length),
+		Position = Vector3.new(at.X + width * 0.5, y, at.Z),
+		Color = theme.metal,
+		Material = AuraTheme.Materials.Metal,
+	})
+end
+
+function ParkourKit.BouncePad(parent: Instance, at: Vector3, theme: Theme, power: number?): BasePart
+	local p = ParkourKit.Part({
+		Name = "Bounce",
+		Parent = parent,
+		Size = Vector3.new(8, 1.3, 8),
+		Position = at,
+		Color = Color3.fromRGB(255, 140, 70),
+		Material = AuraTheme.Materials.Path,
+		Friction = 1.0,
+	})
+	p:SetAttribute(ObbyConfig.BounceTag, power or 70)
+	ParkourKit.Part({
+		Name = "BounceGlow",
+		Parent = parent,
+		Size = Vector3.new(8.4, 0.35, 8.4),
+		Position = at + Vector3.new(0, 0.85, 0),
+		Color = Color3.fromRGB(255, 160, 80),
+		Material = AuraTheme.Materials.Glow,
+		CanCollide = false,
+		Transparency = 0.2,
+	})
+	return p
+end
+
+return ParkourKit
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="12">
+        <Properties>
+          <string name="Name">RNG</string>
+          <string name="Source"><![CDATA[-- Weighted random helpers.
+
+local RNG = {}
+
+function RNG.WeightedPick(entries: { { weight: number } }): number?
+	local total = 0
+	for _, entry in entries do
+		if entry.weight > 0 then
+			total += entry.weight
+		end
+	end
+	if total <= 0 then
+		return nil
+	end
+	local roll = math.random() * total
+	local cumulative = 0
+	for i, entry in entries do
+		if entry.weight > 0 then
+			cumulative += entry.weight
+			if roll <= cumulative then
+				return i
+			end
+		end
+	end
+	for i = #entries, 1, -1 do
+		if entries[i].weight > 0 then
+			return i
+		end
+	end
+	return nil
+end
+
+function RNG.WeightedTablePick(weights: { [string]: number }): string?
+	local total = 0
+	local keys = {}
+	for key, weight in weights do
+		if weight > 0 then
+			total += weight
+			table.insert(keys, key)
+		end
+	end
+	if total <= 0 or #keys == 0 then
+		return nil
+	end
+	local roll = math.random() * total
+	local cumulative = 0
+	for _, key in keys do
+		local w = weights[key]
+		if w and w > 0 then
+			cumulative += w
+			if roll <= cumulative then
+				return key
+			end
+		end
+	end
+	return keys[#keys]
+end
+
+function RNG.Chance(p: number): boolean
+	return math.random() < math.clamp(p, 0, 1)
+end
+
+-- Lucky orb multiplier roll (common → jackpot)
+function RNG.OrbMultiplier(): (number, string)
+	local tier = RNG.WeightedTablePick({
+		Normal = 70,
+		Glowing = 20,
+		Radiant = 8,
+		Jackpot = 2,
+	}) or "Normal"
+	if tier == "Glowing" then
+		return 2, "Glowing"
+	elseif tier == "Radiant" then
+		return 3, "Radiant"
+	elseif tier == "Jackpot" then
+		return 5, "Jackpot"
+	end
+	return 1, "Normal"
+end
+
+return RNG
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="13">
+        <Properties>
+          <string name="Name">RateLimiter</string>
+          <string name="Source"><![CDATA[-- Sliding-window rate limiter (tides-of-trade RateLimiter).
+
+local RateLimiter = {}
+RateLimiter.__index = RateLimiter
+
+export type RateLimiter = typeof(setmetatable(
+	{} :: {
+		_limit: number,
+		_windowSec: number,
+		_windows: { [string]: { number } },
+	},
+	RateLimiter
+))
+
+function RateLimiter.new(limit: number, windowSec: number): RateLimiter
+	return setmetatable({
+		_limit = math.max(1, limit),
+		_windowSec = math.max(0.05, windowSec),
+		_windows = {},
+	}, RateLimiter)
+end
+
+function RateLimiter.Allow(self: RateLimiter, key: string): boolean
+	local now = os.clock()
+	local bucket = self._windows[key]
+	if not bucket then
+		bucket = {}
+		self._windows[key] = bucket
+	end
+	local cutoff = now - self._windowSec
+	local kept = {}
+	for _, t in bucket do
+		if t >= cutoff then
+			table.insert(kept, t)
+		end
+	end
+	if #kept >= self._limit then
+		self._windows[key] = kept
+		return false
+	end
+	table.insert(kept, now)
+	self._windows[key] = kept
+	return true
+end
+
+function RateLimiter.Reset(self: RateLimiter, key: string)
+	self._windows[key] = nil
+end
+
+function RateLimiter.Clear(self: RateLimiter)
+	self._windows = {}
+end
+
+return RateLimiter
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="14">
+        <Properties>
+          <string name="Name">Remotes</string>
+          <string name="Source"><![CDATA[-- Ensures all RemoteEvents exist (server creates, client waits).
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Remotes = {}
+
+local FOLDER_NAME = "ObbyRemotes"
+
+local EVENT_NAMES = {
+	"Toast",
+	"AuraUpdate",
+	"StatsUpdate",
+	"Finish",
+	"RestartRequest",
+	"BuyCosmetic",
+	"EquipCosmetic",
+	"CosmeticResult",
+	"AchievementUnlocked",
+	"QuestUpdate",
+	"ClaimQuest",
+	"QuestResult",
+	"WeatherUpdate",
+	"LeaderboardUpdate",
+	"RequestLeaderboard",
+	"OfflineReward",
+	"SettingsUpdate",
+	"TutorialState",
+	"TutorialComplete",
+	"PlaySound",
+	"StageUpdate",
+	"SelectStageRequest",
+}
+
+function Remotes.InitServer()
+	local folder = ReplicatedStorage:FindFirstChild(FOLDER_NAME)
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = FOLDER_NAME
+		folder.Parent = ReplicatedStorage
+	end
+	for _, name in EVENT_NAMES do
+		if not folder:FindFirstChild(name) then
+			local ev = Instance.new("RemoteEvent")
+			ev.Name = name
+			ev.Parent = folder
+		end
+	end
+	return folder
+end
+
+function Remotes.GetFolder(): Folder
+	local folder = ReplicatedStorage:WaitForChild(FOLDER_NAME) :: Folder
+	return folder
+end
+
+function Remotes.Get(name: string): RemoteEvent
+	local folder = Remotes.GetFolder()
+	local ev = folder:WaitForChild(name)
+	return ev :: RemoteEvent
+end
+
+return Remotes
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="15">
+        <Properties>
+          <string name="Name">SoundCatalog</string>
+          <string name="Source"><![CDATA[-- SFX catalog using Roblox built-in library IDs (no custom upload required).
+
+local SoundCatalog = {}
+
+SoundCatalog.Ids = {
+	Orb = "rbxassetid://9119720957",
+	Lucky = "rbxassetid://9119720957",
+	Checkpoint = "rbxassetid://12222253",
+	Finish = "rbxassetid://12222208",
+	Death = "rbxassetid://12222216",
+	Whoosh = "rbxassetid://9114224583",
+	Purchase = "rbxassetid://12222255",
+	Equip = "rbxassetid://12222255",
+	Achievement = "rbxassetid://12222208",
+	Error = "rbxassetid://12222216",
+	UI = "rbxassetid://6701939800",
+	Bounce = "rbxassetid://9119720957",
+}
+
+-- Soft ambient loop (optional music bed)
+SoundCatalog.MusicId = "rbxassetid://1844702927"
+SoundCatalog.MusicVolume = 0.25
+SoundCatalog.SfxVolume = 0.55
+
+function SoundCatalog.Get(name: string): string?
+	return SoundCatalog.Ids[name]
+end
+
+return SoundCatalog
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="16">
+        <Properties>
+          <string name="Name">StageConfig</string>
+          <string name="Source"><![CDATA[-- Multi-stage definitions — aura-farm identity (purple void rooms).
+
+local AuraTheme = require(script.Parent:WaitForChild("AuraTheme"))
+
+local StageConfig = {}
+
+export type StageDef = {
+	id: number,
+	name: string,
+	subtitle: string,
+	originX: number,
+	baseY: number,
+	minFinishTimeSec: number,
+	minCheckpointForFinish: number,
+	checkpointCount: number,
+	clearAura: number,
+	clearCoins: number,
+	orbAura: number,
+	theme: string,
+	pathColor: Color3,
+	accentColor: Color3,
+	killColor: Color3,
+	fogColor: Color3,
+	clockTime: number,
+	requiresStage: number?,
+}
+
+StageConfig.LobbySpawn = Vector3.new(0, 8, 40)
+
+local C = AuraTheme.Colors
+
+StageConfig.Stages = {
+	{
+		id = 1,
+		name = "Meadow Run",
+		subtitle = "Learn the flow",
+		originX = 0,
+		baseY = 12,
+		minFinishTimeSec = 10,
+		minCheckpointForFinish = 1,
+		checkpointCount = 4,
+		clearAura = 25,
+		clearCoins = 10,
+		orbAura = 2,
+		theme = "meadow",
+		pathColor = Color3.fromRGB(40, 55, 48), -- dark grass-slate (not neon floor)
+		accentColor = Color3.fromRGB(160, 255, 180),
+		killColor = C.Danger,
+		fogColor = Color3.fromRGB(50, 70, 90),
+		clockTime = 19.5,
+		requiresStage = nil,
+	},
+	{
+		id = 2,
+		name = "Crystal Canyon",
+		subtitle = "Timing & height",
+		originX = 220,
+		baseY = 18,
+		minFinishTimeSec = 14,
+		minCheckpointForFinish = 2,
+		checkpointCount = 5,
+		clearAura = 55,
+		clearCoins = 22,
+		orbAura = 3,
+		theme = "canyon",
+		pathColor = Color3.fromRGB(48, 36, 72),
+		accentColor = C.Accent,
+		killColor = C.Danger,
+		fogColor = Color3.fromRGB(50, 30, 80),
+		clockTime = 20.5,
+		requiresStage = 1,
+	},
+	{
+		id = 3,
+		name = "Neon Spire",
+		subtitle = "Precision endgame",
+		originX = 460,
+		baseY = 28,
+		minFinishTimeSec = 18,
+		minCheckpointForFinish = 3,
+		checkpointCount = 6,
+		clearAura = 120,
+		clearCoins = 50,
+		orbAura = 4,
+		theme = "neon",
+		-- Path is DARK plastic; neon is accent only (ParkourKit)
+		pathColor = Color3.fromRGB(28, 30, 48),
+		accentColor = C.AccentCool,
+		killColor = C.Danger,
+		fogColor = Color3.fromRGB(20, 12, 40),
+		clockTime = 21.8,
+		requiresStage = 2,
+	},
+} :: { StageDef }
+
+function StageConfig.Get(id: number): StageDef?
+	for _, s in StageConfig.Stages do
+		if s.id == id then
+			return s
+		end
+	end
+	return nil
+end
+
+function StageConfig.Count(): number
+	return #StageConfig.Stages
+end
+
+function StageConfig.FolderName(id: number): string
+	return "Stage" .. tostring(id)
+end
+
+return StageConfig
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="17">
+        <Properties>
+          <string name="Name">TimeUtil</string>
+          <string name="Source"><![CDATA[-- UTC date helpers for dailies / streaks.
+
+local TimeUtil = {}
+
+function TimeUtil.UtcNow(): number
+	return os.time()
+end
+
+function TimeUtil.UtcYmd(ts: number?): string
+	local t = ts or os.time()
+	-- os.date with ! = UTC
+	return os.date("!%Y-%m-%d", t) :: string
+end
+
+function TimeUtil.UtcDayIndex(ts: number?): number
+	local t = ts or os.time()
+	return math.floor(t / 86400)
+end
+
+function TimeUtil.FormatCompact(seconds: number): string
+	seconds = math.max(0, math.floor(seconds))
+	if seconds < 60 then
+		return string.format("%ds", seconds)
+	elseif seconds < 3600 then
+		return string.format("%dm", math.floor(seconds / 60))
+	elseif seconds < 86400 then
+		local h = math.floor(seconds / 3600)
+		local m = math.floor((seconds % 3600) / 60)
+		return string.format("%dh %dm", h, m)
+	else
+		local d = math.floor(seconds / 86400)
+		local h = math.floor((seconds % 86400) / 3600)
+		return string.format("%dd %dh", d, h)
+	end
+end
+
+function TimeUtil.HoursBetween(a: number, b: number): number
+	return math.abs(b - a) / 3600
+end
+
+return TimeUtil
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="18">
+        <Properties>
+          <string name="Name">TutorialConfig</string>
+          <string name="Source"><![CDATA[-- First-run tips (tides-of-trade TutorialConfig, shortened for obby).
+
+local TutorialConfig = {}
+
+TutorialConfig.Steps = {
+	{
+		id = "welcome",
+		title = "Welcome",
+		body = "This is Aura Farm Obby. Race the course, grab purple orbs, hit the gold finish.",
+	},
+	{
+		id = "checkpoints",
+		title = "Checkpoints",
+		body = "Yellow pads save your run. Die or fall and you respawn at the last one.",
+	},
+	{
+		id = "orbs",
+		title = "Farm Aura",
+		body = "Purple orbs give Aura. Chain them fast for combos. Lucky rolls can multiply the payout.",
+	},
+	{
+		id = "shop",
+		title = "Trails",
+		body = "Press B (or Shop) to spend Aura on glow trails. Flex while you speedrun.",
+	},
+	{
+		id = "dailies",
+		title = "Dailies",
+		body = "Open Quests for daily goals + login streaks. Come back tomorrow for more rewards.",
+	},
+}
+
+return TutorialConfig
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="ServerScriptService" referent="19">
+    <Properties>
+      <string name="Name">ServerScriptService</string>
+    </Properties>
+    <Item class="ModuleScript" referent="20">
+      <Properties>
+        <string name="Name">Leaderstats</string>
+        <string name="Source"><![CDATA[-- Classic Roblox leaderboard values (Aura, Best, Finishes).
+-- Server-owned NumberValues; never trust the client.
+
+local Leaderstats = {}
+
+local function ensureFolder(player: Player): Folder
+	local f = player:FindFirstChild("leaderstats")
+	if f and f:IsA("Folder") then
+		return f
+	end
+	if f then
+		f:Destroy()
+	end
+	local folder = Instance.new("Folder")
+	folder.Name = "leaderstats"
+	folder.Parent = player
+	return folder
+end
+
+local function ensureValue(folder: Folder, name: string, className: string): Instance
+	local v = folder:FindFirstChild(name)
+	if v and v.ClassName == className then
+		return v
+	end
+	if v then
+		v:Destroy()
+	end
+	local n = Instance.new(className)
+	n.Name = name
+	n.Parent = folder
+	return n
+end
+
+function Leaderstats.Setup(player: Player)
+	local folder = ensureFolder(player)
+	ensureValue(folder, "Aura", "IntValue")
+	ensureValue(folder, "Best", "NumberValue") -- seconds; 0 = none
+	ensureValue(folder, "Clears", "IntValue")
+end
+
+function Leaderstats.Update(player: Player, profile: {
+	aura: number,
+	bestTime: number?,
+	totalFinishes: number,
+})
+	local folder = player:FindFirstChild("leaderstats")
+	if not folder then
+		Leaderstats.Setup(player)
+		folder = player:FindFirstChild("leaderstats")
+	end
+	if not folder then
+		return
+	end
+
+	local aura = folder:FindFirstChild("Aura")
+	if aura and aura:IsA("IntValue") then
+		aura.Value = math.floor(profile.aura or 0)
+	end
+
+	local best = folder:FindFirstChild("Best")
+	if best and best:IsA("NumberValue") then
+		best.Value = profile.bestTime or 0
+	end
+
+	local clears = folder:FindFirstChild("Clears")
+	if clears and clears:IsA("IntValue") then
+		clears.Value = math.floor(profile.totalFinishes or 0)
+	end
+end
+
+return Leaderstats
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="Script" referent="21">
+      <Properties>
+        <string name="Name">ObbyServer</string>
+        <token name="RunContext">0</token>
+        <string name="Source"><![CDATA[-- Aura Farm Obby — server hub (multi-stage)
+-- Data, trails, quests, weather, ordered best-times, offline earnings,
+-- rate limits, lucky orbs, achievements, cosmetics, stage select/portals.
+
+print("[ObbyServer] Starting")
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local ObbyConfig = require(Shared:WaitForChild("ObbyConfig"))
+local StageConfig = require(Shared:WaitForChild("StageConfig"))
+local CosmeticsCatalog = require(Shared:WaitForChild("CosmeticsCatalog"))
+local Achievements = require(Shared:WaitForChild("Achievements"))
+local Remotes = require(Shared:WaitForChild("Remotes"))
+local RNG = require(Shared:WaitForChild("RNG"))
+local RateLimiter = require(Shared:WaitForChild("RateLimiter"))
+
+local StageBuilder = require(script.Parent:WaitForChild("StageBuilder"))
+local TerrainGenerator = require(script.Parent:WaitForChild("TerrainGenerator"))
+local StageStreamer = require(script.Parent:WaitForChild("StageStreamer"))
+local PlayerData = require(script.Parent:WaitForChild("PlayerData"))
+local TrailService = require(script.Parent:WaitForChild("TrailService"))
+local QuestService = require(script.Parent:WaitForChild("QuestService"))
+local WeatherService = require(script.Parent:WaitForChild("WeatherService"))
+local OrderedStats = require(script.Parent:WaitForChild("OrderedStats"))
+local OfflineEarnings = require(script.Parent:WaitForChild("OfflineEarnings"))
+local AuraTheme = require(Shared:WaitForChild("AuraTheme"))
+
+Remotes.InitServer()
+PlayerData.Init()
+OrderedStats.Init()
+
+AuraTheme.ApplyLighting(Lighting)
+AuraTheme.EnsurePostFx(Lighting)
+
+local remoteFolder = ReplicatedStorage:WaitForChild("ObbyRemotes")
+local function R(name: string): RemoteEvent
+	return remoteFolder:WaitForChild(name) :: RemoteEvent
+end
+
+local Toast = R("Toast")
+local AuraUpdate = R("AuraUpdate")
+local StatsUpdate = R("StatsUpdate")
+local FinishEv = R("Finish")
+local RestartRequest = R("RestartRequest")
+local BuyCosmetic = R("BuyCosmetic")
+local EquipCosmetic = R("EquipCosmetic")
+local CosmeticResult = R("CosmeticResult")
+local AchievementUnlocked = R("AchievementUnlocked")
+local QuestUpdate = R("QuestUpdate")
+local ClaimQuest = R("ClaimQuest")
+local QuestResult = R("QuestResult")
+local WeatherUpdate = R("WeatherUpdate")
+local LeaderboardUpdate = R("LeaderboardUpdate")
+local RequestLeaderboard = R("RequestLeaderboard")
+local OfflineReward = R("OfflineReward")
+local SettingsUpdate = R("SettingsUpdate")
+local TutorialState = R("TutorialState")
+local TutorialComplete = R("TutorialComplete")
+local PlaySound = R("PlaySound")
+local StageUpdate = R("StageUpdate")
+
+local restartLimiter = RateLimiter.new(3, 4)
+local shopLimiter = RateLimiter.new(8, 3)
+local claimLimiter = RateLimiter.new(6, 3)
+local stageLimiter = RateLimiter.new(4, 3)
+
+type RunState = {
+	stageId: number,
+	checkpointIndex: number,
+	checkpointCF: CFrame?,
+	runStartClock: number,
+	finished: boolean,
+	collectedOrbs: { [string]: boolean },
+	combo: number,
+	comboExpire: number,
+	lastKill: number,
+	lastRestart: number,
+	sessionStart: number,
+	playMinuteAcc: number,
+	invulnUntil: number,
+}
+
+local runs: { [number]: RunState } = {}
+local stagesRoot: Folder? = nil
+
+local function toast(player: Player, text: string, kind: string?)
+	Toast:FireClient(player, text, kind or "info")
+end
+
+local function sfx(player: Player, name: string)
+	PlaySound:FireClient(player, name)
+end
+
+local function ensureLeaderstats(player: Player, profile)
+	local ls = player:FindFirstChild("leaderstats")
+	if not ls then
+		ls = Instance.new("Folder")
+		ls.Name = "leaderstats"
+		ls.Parent = player
+	end
+	local function stat(name: string, value: number)
+		local v = ls:FindFirstChild(name)
+		if not v then
+			v = Instance.new("IntValue")
+			v.Name = name
+			v.Parent = ls
+		end
+		(v :: IntValue).Value = math.floor(value)
+	end
+	stat("Aura", profile.aura)
+	stat("Coins", profile.coins)
+	stat("Finishes", profile.totalFinishes)
+	stat("Streak", profile.loginStreak or 0)
+	local bestCs = 0
+	if profile.bestTime and profile.bestTime > 0 then
+		bestCs = math.floor(profile.bestTime * 100 + 0.5)
+	end
+	stat("BestCs", bestCs)
+	stat("Stage", profile.currentStage or 1)
+end
+
+local function pushQuests(player: Player)
+	local profile = PlayerData.Get(player)
+	if not profile then
+		return
+	end
+	QuestUpdate:FireClient(player, QuestService.Snapshot(profile))
+end
+
+local function pushStats(player: Player)
+	local profile = PlayerData.Get(player)
+	if not profile then
+		return
+	end
+	ensureLeaderstats(player, profile)
+	local snap = PlayerData.Snapshot(player)
+	if snap then
+		local run = runs[player.UserId]
+		snap.checkpointIndex = run and run.checkpointIndex or 0
+		snap.runTime = run and (os.clock() - run.runStartClock) or 0
+		snap.finished = run and run.finished or false
+		snap.combo = run and run.combo or 0
+		snap.stageId = run and run.stageId or (profile.currentStage or 1)
+		local def = StageConfig.Get(snap.stageId)
+		snap.stageName = def and def.name or ("Stage " .. tostring(snap.stageId))
+		snap.weatherLabel = WeatherService.GetMood().label
+		snap.weatherMult = WeatherService.GetAuraMultiplier()
+		StatsUpdate:FireClient(player, snap)
+		AuraUpdate:FireClient(player, profile.aura, profile.coins)
+		StageUpdate:FireClient(player, {
+			stageId = snap.stageId,
+			stageName = snap.stageName,
+			stagesCleared = snap.stagesCleared,
+			bestTimes = snap.bestTimes,
+		})
+	end
+end
+
+local function newRun(stageId: number): RunState
+	return {
+		stageId = stageId,
+		checkpointIndex = 0,
+		checkpointCF = nil,
+		runStartClock = os.clock(),
+		finished = false,
+		collectedOrbs = {},
+		combo = 0,
+		comboExpire = 0,
+		lastKill = 0,
+		lastRestart = 0,
+		sessionStart = os.clock(),
+		playMinuteAcc = 0,
+		invulnUntil = 0,
+	}
+end
+
+local function stageFolder(stageId: number): Instance?
+	local root = stagesRoot or workspace:FindFirstChild(ObbyConfig.StageFolderName)
+	if not root then
+		return nil
+	end
+	return root:FindFirstChild(StageConfig.FolderName(stageId))
+end
+
+local function getStageSpawnCF(stageId: number): CFrame
+	local folder = stageFolder(stageId)
+	if folder then
+		local sp = folder:FindFirstChild("StartSpawn")
+		if sp and sp:IsA("BasePart") then
+			return sp.CFrame + Vector3.new(0, 3, 0)
+		end
+		local def = StageConfig.Get(stageId)
+		if def then
+			return CFrame.new(def.originX, def.baseY + 5, 28)
+		end
+	end
+	return ObbyConfig.StartCFrame or CFrame.new(0, 16, 28)
+end
+
+local function getSpawnCF(run: RunState): CFrame
+	if run.checkpointCF then
+		return run.checkpointCF + Vector3.new(0, 3, 0)
+	end
+	return getStageSpawnCF(run.stageId)
+end
+
+local function applyStageLighting(stageId: number)
+	local def = StageConfig.Get(stageId)
+	if not def then
+		return
+	end
+	pcall(function()
+		Lighting.ClockTime = def.clockTime
+		Lighting.FogColor = def.fogColor
+		Lighting.FogStart = 40
+		Lighting.FogEnd = 220
+		Lighting.Ambient = Color3.fromRGB(70, 50, 110)
+	end)
+end
+
+local function teleportTo(player: Player, cf: CFrame)
+	local char = player.Character
+	if not char then
+		return
+	end
+	local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if hrp then
+		hrp.AssemblyLinearVelocity = Vector3.zero
+		hrp.AssemblyAngularVelocity = Vector3.zero
+		hrp.CFrame = cf
+	end
+end
+
+local function applyTrail(player: Player)
+	local profile = PlayerData.Get(player)
+	local char = player.Character
+	if profile and char then
+		TrailService.Apply(char, profile.equippedTrail)
+	end
+end
+
+local function canEnterStage(profile, stageId: number): (boolean, string?)
+	local def = StageConfig.Get(stageId)
+	if not def then
+		return false, "Unknown stage"
+	end
+	if not PlayerData.IsStageUnlocked(profile, stageId, def.requiresStage) then
+		local req = def.requiresStage or (stageId - 1)
+		local reqDef = StageConfig.Get(req)
+		local name = reqDef and reqDef.name or ("Stage " .. tostring(req))
+		return false, "Clear " .. name .. " first"
+	end
+	return true, nil
+end
+
+local function enterStage(player: Player, stageId: number, opts: { silent: boolean? }?)
+	local profile = PlayerData.Get(player)
+	if not profile then
+		return
+	end
+	local ok, err = canEnterStage(profile, stageId)
+	if not ok then
+		toast(player, err or "Locked", "warn")
+		sfx(player, "Error")
+		return
+	end
+	profile.currentStage = stageId
+	PlayerData.MarkDirty(player)
+	local run = newRun(stageId)
+	run.invulnUntil = os.clock() + (ObbyConfig.RespawnInvulnSec or 1.5)
+	runs[player.UserId] = run
+	applyStageLighting(stageId)
+	StageStreamer.Focus(player, stageId)
+	if player.Character then
+		teleportTo(player, getSpawnCF(run))
+		applyTrail(player)
+	end
+	pushStats(player)
+	if not (opts and opts.silent) then
+		local def = StageConfig.Get(stageId)
+		toast(player, string.format("Stage %d — %s", stageId, def and def.name or ""), "info")
+		sfx(player, "Whoosh")
+	end
+end
+
+local function checkAchievements(player: Player)
+	local profile = PlayerData.Get(player)
+	if not profile then
+		return
+	end
+	if type(profile.achievements) ~= "table" then
+		profile.achievements = {}
+	end
+
+	local function trailsOwned(): number
+		local n = 0
+		for _, t in CosmeticsCatalog.All() do
+			if profile.unlocked[t.id] then
+				n += 1
+			end
+		end
+		return n
+	end
+
+	local function stagesClearedCount(): number
+		local n = 0
+		for _ in profile.stagesCleared do
+			n += 1
+		end
+		return n
+	end
+
+	local function statValue(stat: string): number
+		if stat == "finishes" then
+			return profile.totalFinishes
+		elseif stat == "orbs" then
+			return profile.totalOrbs
+		elseif stat == "death_count" or stat == "deaths" then
+			return profile.totalDeaths
+		elseif stat == "best_time" then
+			return profile.bestTime or 0
+		elseif stat == "trails" then
+			return trailsOwned()
+		elseif stat == "streak" then
+			return profile.loginStreak or 0
+		elseif stat == "stages" then
+			return stagesClearedCount()
+		elseif stat == "aura" then
+			return profile.aura
+		end
+		return profile.stats[stat] or 0
+	end
+
+	for _, def in Achievements.List do
+		if profile.achievements[def.id] then
+			continue
+		end
+		local val = statValue(def.stat)
+		local ok = false
+		if def.stat == "best_time" then
+			ok = val > 0 and val <= (def.threshold or 0)
+		else
+			ok = val >= (def.threshold or 0)
+		end
+		if ok then
+			profile.achievements[def.id] = true
+			profile.aura += def.rewardAura or 0
+			profile.coins += def.rewardCoins or 0
+			PlayerData.MarkDirty(player)
+			AchievementUnlocked:FireClient(player, {
+				id = def.id,
+				name = def.name,
+				description = def.description,
+				rewardAura = def.rewardAura,
+				rewardCoins = def.rewardCoins,
+			})
+			sfx(player, "Achievement")
+			toast(player, string.format("Achievement: %s", def.name), "good")
+		end
+	end
+end
+
+local function onKill(player: Player)
+	local run = runs[player.UserId]
+	local profile = PlayerData.Get(player)
+	if not run or not profile then
+		return
+	end
+	local now = os.clock()
+	if now < (run.invulnUntil or 0) then
+		return
+	end
+	if now - run.lastKill < (ObbyConfig.KillDebounceSec or 1.25) then
+		return
+	end
+	run.lastKill = now
+	run.invulnUntil = now + (ObbyConfig.RespawnInvulnSec or 1.5)
+	profile.totalDeaths += 1
+	profile.stats.kills = (profile.stats.kills or 0) + 1
+	PlayerData.MarkDirty(player)
+	QuestService.Record(profile, "deaths", 1)
+	teleportTo(player, getSpawnCF(run))
+	sfx(player, "Death")
+	toast(player, "Checkpoint restore", "warn")
+	pushStats(player)
+	checkAchievements(player)
+end
+
+local function wireCharacter(player: Player, char: Model)
+	local hum = char:WaitForChild("Humanoid", 10) :: Humanoid?
+	if hum then
+		hum.Died:Connect(function()
+			onKill(player)
+		end)
+	end
+
+	-- Bounce pads (client-feel via server impulse)
+	task.spawn(function()
+		while player.Character == char do
+			local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+			if hrp then
+				-- fall into world kill handled by parts
+			end
+			task.wait(0.2)
+		end
+	end)
+
+	applyTrail(player)
+	local run = runs[player.UserId]
+	if run then
+		task.defer(function()
+			if player.Character == char then
+				teleportTo(player, getSpawnCF(run))
+				run.invulnUntil = os.clock() + (ObbyConfig.RespawnInvulnSec or 1.5)
+			end
+		end)
+	end
+end
+
+local function partStageId(part: BasePart): number?
+	local inst: Instance? = part
+	while inst do
+		local id = inst:GetAttribute("StageId")
+		if typeof(id) == "number" then
+			return id
+		end
+		if inst.Name:match("^Stage%d+$") then
+			return tonumber(inst.Name:match("%d+"))
+		end
+		inst = inst.Parent
+	end
+	return nil
+end
+
+local function wireStageParts(root: Instance)
+	for _, part in root:GetDescendants() do
+		if not part:IsA("BasePart") then
+			continue
+		end
+
+		-- Checkpoints
+		local cp = part:GetAttribute(ObbyConfig.CheckpointTag)
+		if typeof(cp) == "number" then
+			part.Touched:Connect(function(hit)
+				local char = hit:FindFirstAncestorOfClass("Model")
+				if not char then
+					return
+				end
+				local player = Players:GetPlayerFromCharacter(char)
+				if not player then
+					return
+				end
+				local run = runs[player.UserId]
+				if not run or run.finished then
+					return
+				end
+				local sid = partStageId(part)
+				if sid and sid ~= run.stageId then
+					return
+				end
+				if cp > run.checkpointIndex then
+					run.checkpointIndex = cp
+					run.checkpointCF = part.CFrame
+					sfx(player, "Checkpoint")
+					toast(player, "Checkpoint " .. tostring(cp), "info")
+					pushStats(player)
+					local profile = PlayerData.Get(player)
+					if profile then
+						QuestService.Record(profile, "checkpoints", 1)
+					end
+				end
+			end)
+		end
+
+		-- Kill
+		if part:GetAttribute(ObbyConfig.KillTag) == true or part.Name:find("Kill") then
+			part.Touched:Connect(function(hit)
+				local char = hit:FindFirstAncestorOfClass("Model")
+				if not char then
+					return
+				end
+				local player = Players:GetPlayerFromCharacter(char)
+				if player then
+					onKill(player)
+				end
+			end)
+		end
+
+		-- Orbs
+		if part:GetAttribute(ObbyConfig.OrbTag) == true then
+			local orbId = part:GetAttribute("OrbId") or part:GetFullName()
+			part.Touched:Connect(function(hit)
+				local char = hit:FindFirstAncestorOfClass("Model")
+				if not char then
+					return
+				end
+				local player = Players:GetPlayerFromCharacter(char)
+				if not player then
+					return
+				end
+				local run = runs[player.UserId]
+				local profile = PlayerData.Get(player)
+				if not run or not profile or run.finished then
+					return
+				end
+				local sid = partStageId(part)
+				if sid and sid ~= run.stageId then
+					return
+				end
+				if run.collectedOrbs[orbId] then
+					return
+				end
+				run.collectedOrbs[orbId] = true
+
+				local base = part:GetAttribute("Aura")
+				if typeof(base) ~= "number" then
+					local def = StageConfig.Get(run.stageId)
+					base = (def and def.orbAura) or ObbyConfig.OrbAura or 2
+				end
+				local mult = WeatherService.GetAuraMultiplier()
+				local lucky = false
+				if RNG.Chance and RNG.Chance(ObbyConfig.LuckyOrbChance or 0.08) then
+					mult *= (ObbyConfig.LuckyOrbMult or 3)
+					lucky = true
+				elseif math.random() < (ObbyConfig.LuckyOrbChance or 0.08) then
+					mult *= (ObbyConfig.LuckyOrbMult or 3)
+					lucky = true
+				end
+
+				local now = os.clock()
+				if now <= run.comboExpire then
+					run.combo += 1
+				else
+					run.combo = 1
+				end
+				run.comboExpire = now + (ObbyConfig.ComboWindowSec or 4)
+				local comboBonus = math.max(0, run.combo - 1) * (ObbyConfig.ComboAuraBonus or 1)
+				local gain = math.floor(base * mult + comboBonus)
+
+				profile.aura += gain
+				profile.totalOrbs += 1
+				profile.stats.orbs = (profile.stats.orbs or 0) + 1
+				PlayerData.MarkDirty(player)
+				QuestService.Record(profile, "orbs", 1)
+
+				part.Transparency = 1
+				part.CanTouch = false
+				local light = part:FindFirstChildWhichIsA("PointLight")
+				if light then
+					light.Enabled = false
+				end
+
+				checkAchievements(player)
+				pushStats(player)
+				sfx(player, if lucky then "Lucky" else "Orb")
+				local bits = { string.format("+%d Aura", gain) }
+				if lucky then
+					table.insert(bits, "LUCKY")
+				end
+				if run.combo > 1 then
+					table.insert(bits, string.format("x%d combo", run.combo))
+				end
+				local mood = WeatherService.GetMood()
+				if mood and mood.label then
+					table.insert(bits, mood.label)
+				end
+				toast(player, table.concat(bits, " · "), "aura")
+			end)
+		end
+
+		-- Finish
+		if part:GetAttribute(ObbyConfig.FinishTag) == true then
+			part.Touched:Connect(function(hit)
+				local char = hit:FindFirstAncestorOfClass("Model")
+				if not char then
+					return
+				end
+				local player = Players:GetPlayerFromCharacter(char)
+				if not player then
+					return
+				end
+				local run = runs[player.UserId]
+				local profile = PlayerData.Get(player)
+				if not run or not profile or run.finished then
+					return
+				end
+				local sid = partStageId(part) or run.stageId
+				if sid ~= run.stageId then
+					return
+				end
+
+				local hrp = char:FindFirstChild("HumanoidRootPart")
+				if not hrp or not hrp:IsA("BasePart") then
+					return
+				end
+				local dist = (hrp.Position - part.Position).Magnitude
+				if dist > (ObbyConfig.MaxFinishDistance or 18) then
+					warn("[ObbyServer] Finish rejected (distance)", player.Name, dist)
+					return
+				end
+
+				local elapsed = os.clock() - run.runStartClock
+				local def = StageConfig.Get(run.stageId)
+				local minT = (def and def.minFinishTimeSec) or ObbyConfig.MinFinishTimeSec or 10
+				if elapsed < minT then
+					toast(player, "Finish too fast — try a fair run", "warn")
+					return
+				end
+				local minCp = (def and def.minCheckpointForFinish) or ObbyConfig.MinCheckpointForFinish or 1
+				if run.checkpointIndex < minCp then
+					toast(player, "Hit more checkpoints first", "warn")
+					return
+				end
+
+				run.finished = true
+				profile.totalFinishes += 1
+				profile.stats.finishes = (profile.stats.finishes or 0) + 1
+				profile.stagesCleared[tostring(run.stageId)] = true
+
+				local clearAura = (def and def.clearAura) or ObbyConfig.FinishAuraBonus or 25
+				local clearCoins = (def and def.clearCoins) or ObbyConfig.FinishCoinBonus or 10
+				local wmult = WeatherService.GetAuraMultiplier()
+				local auraGain = math.floor(clearAura * wmult)
+				profile.aura += auraGain
+				profile.coins += clearCoins
+
+				local key = tostring(run.stageId)
+				local prev = profile.bestTimes[key]
+				local isBest = false
+				if not prev or elapsed < prev then
+					profile.bestTimes[key] = elapsed
+					isBest = true
+				end
+				if not profile.bestTime or elapsed < profile.bestTime then
+					profile.bestTime = elapsed
+				end
+
+				PlayerData.MarkDirty(player)
+				QuestService.Record(profile, "finishes", 1)
+				OrderedStats.Submit(player, elapsed)
+				checkAchievements(player)
+				pushStats(player)
+				pushQuests(player)
+
+				FinishEv:FireClient(player, {
+					time = elapsed,
+					best = isBest,
+					aura = auraGain,
+					coins = clearCoins,
+					stageId = run.stageId,
+					stageName = def and def.name or ("Stage " .. run.stageId),
+					nextStage = run.stageId + 1,
+					nextUnlocked = PlayerData.IsStageUnlocked(profile, run.stageId + 1, run.stageId),
+				})
+				sfx(player, "Finish")
+				local msg = string.format(
+					"Stage %d clear! %.2fs · +%d Aura · +%d Coins",
+					run.stageId,
+					elapsed,
+					auraGain,
+					clearCoins
+				)
+				if isBest then
+					msg ..= " · PERSONAL BEST"
+				end
+				toast(player, msg, "good")
+				PlayerData.Save(player)
+			end)
+		end
+
+		-- Bounce
+		local bounce = part:GetAttribute(ObbyConfig.BounceTag)
+		if typeof(bounce) == "number" then
+			part.Touched:Connect(function(hit)
+				local char = hit:FindFirstAncestorOfClass("Model")
+				if not char then
+					return
+				end
+				local hrp = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+				if hrp then
+					hrp.AssemblyLinearVelocity = Vector3.new(
+						hrp.AssemblyLinearVelocity.X,
+						bounce,
+						hrp.AssemblyLinearVelocity.Z
+					)
+				end
+			end)
+		end
+
+		-- Portal to next stage
+		local portalTo = part:GetAttribute(ObbyConfig.PortalTag)
+		if typeof(portalTo) == "number" then
+			part.Touched:Connect(function(hit)
+				local char = hit:FindFirstAncestorOfClass("Model")
+				if not char then
+					return
+				end
+				local player = Players:GetPlayerFromCharacter(char)
+				if not player then
+					return
+				end
+				if not stageLimiter:Allow("portal_" .. player.UserId) then
+					return
+				end
+				enterStage(player, portalTo)
+			end)
+		end
+
+		-- Lobby stage select
+		local selectId = part:GetAttribute(ObbyConfig.SelectStageTag)
+		if typeof(selectId) == "number" then
+			part.Touched:Connect(function(hit)
+				local char = hit:FindFirstAncestorOfClass("Model")
+				if not char then
+					return
+				end
+				local player = Players:GetPlayerFromCharacter(char)
+				if not player then
+					return
+				end
+				if not stageLimiter:Allow("sel_" .. player.UserId) then
+					return
+				end
+				enterStage(player, selectId)
+			end)
+		end
+	end
+end
+
+-- Build world
+stagesRoot = StageBuilder.BuildAll()
+wireStageParts(stagesRoot)
+local terrain = TerrainGenerator.new()
+local terrainRoot = terrain:Generate(stagesRoot)
+StageStreamer.Init(stagesRoot, terrainRoot)
+StageStreamer.RebuildVisibility()
+wireStageParts(terrainRoot)
+print("[ObbyServer] Multi-stage aura world ready")
+
+WeatherService.Start(function(mood)
+	WeatherUpdate:FireAllClients({
+		id = mood.id,
+		label = mood.label,
+		mult = mood.auraMult or mood.mult or 1,
+	})
+end)
+
+local function onPlayer(player: Player)
+	local profile = PlayerData.Load(player)
+	QuestService.Ensure(profile)
+	local stageId = profile.currentStage or 1
+	if not StageConfig.Get(stageId) then
+		stageId = 1
+	end
+	-- if locked somehow, fall back
+	local ok = canEnterStage(profile, stageId)
+	if not ok then
+		stageId = 1
+	end
+	runs[player.UserId] = newRun(stageId)
+	profile.currentStage = stageId
+	applyStageLighting(stageId)
+	StageStreamer.Focus(player, stageId)
+
+	local offline = OfflineEarnings.Collect(profile)
+	if offline and offline.aura and offline.aura > 0 then
+		profile.aura += offline.aura
+		PlayerData.MarkDirty(player)
+		OfflineReward:FireClient(player, offline)
+		toast(player, string.format("Welcome back · +%d offline Aura", offline.aura), "aura")
+	end
+
+	ensureLeaderstats(player, profile)
+	pushStats(player)
+	pushQuests(player)
+	TutorialState:FireClient(player, profile.tutorialDone == true)
+	checkAchievements(player)
+
+	player.CharacterAdded:Connect(function(char)
+		wireCharacter(player, char)
+	end)
+	if player.Character then
+		wireCharacter(player, player.Character)
+	end
+
+	local mood = WeatherService.GetMood()
+	WeatherUpdate:FireClient(player, {
+		id = mood.id,
+		label = mood.label,
+		mult = mood.auraMult or mood.mult or 1,
+	})
+
+	toast(player, "Aura Farm Obby v" .. ObbyConfig.Version .. " · 3 stages", "info")
+	toast(player, "R restart · B shop · Q quests · T times · P settings", "aura")
+end
+
+for _, player in Players:GetPlayers() do
+	task.spawn(onPlayer, player)
+end
+Players.PlayerAdded:Connect(onPlayer)
+
+Players.PlayerRemoving:Connect(function(player)
+	runs[player.UserId] = nil
+	StageStreamer.ClearPlayer(player)
+end)
+
+-- Playtime tick for daily quest
+task.spawn(function()
+	while true do
+		task.wait(30)
+		for _, player in Players:GetPlayers() do
+			local run = runs[player.UserId]
+			local profile = PlayerData.Get(player)
+			if run and profile then
+				run.playMinuteAcc += 0.5
+				if run.playMinuteAcc >= 1 then
+					local mins = math.floor(run.playMinuteAcc)
+					run.playMinuteAcc -= mins
+					profile.stats.playMinutes = (profile.stats.playMinutes or 0) + mins
+					QuestService.Record(profile, "playMinutes", mins)
+					PlayerData.MarkDirty(player)
+					pushQuests(player)
+				end
+			end
+		end
+	end
+end)
+
+RestartRequest.OnServerEvent:Connect(function(player)
+	if not restartLimiter:Allow("r_" .. player.UserId) then
+		return
+	end
+	local run = runs[player.UserId]
+	if not run then
+		return
+	end
+	local now = os.clock()
+	if now - run.lastRestart < 1 then
+		return
+	end
+	run.lastRestart = now
+	local stageId = run.stageId
+	local fresh = newRun(stageId)
+	fresh.sessionStart = run.sessionStart
+	fresh.playMinuteAcc = run.playMinuteAcc
+	runs[player.UserId] = fresh
+	-- respawn collected orbs on this stage
+	local folder = stageFolder(stageId)
+	if folder then
+		for _, d in folder:GetDescendants() do
+			if d:IsA("BasePart") and d:GetAttribute(ObbyConfig.OrbTag) == true then
+				d.Transparency = 0
+				d.CanTouch = true
+				local light = d:FindFirstChildWhichIsA("PointLight")
+				if light then
+					light.Enabled = true
+				end
+			end
+		end
+	end
+	pushStats(player)
+	sfx(player, "Whoosh")
+	toast(player, "Run reset — go!", "info")
+	if player.Character then
+		teleportTo(player, getSpawnCF(fresh))
+		applyTrail(player)
+	end
+end)
+
+BuyCosmetic.OnServerEvent:Connect(function(player, trailId)
+	if not shopLimiter:Allow("buy_" .. player.UserId) then
+		return
+	end
+	if type(trailId) ~= "string" then
+		return
+	end
+	local profile = PlayerData.Get(player)
+	local def = CosmeticsCatalog.GetTrail(trailId)
+	if not profile or not def then
+		CosmeticResult:FireClient(player, false, "Unknown trail")
+		return
+	end
+	if profile.unlocked[trailId] then
+		CosmeticResult:FireClient(player, false, "Already owned")
+		return
+	end
+	if def.priceAura <= 0 then
+		profile.unlocked[trailId] = true
+	elseif profile.aura < def.priceAura then
+		CosmeticResult:FireClient(player, false, "Not enough Aura")
+		toast(player, "Need more Aura", "warn")
+		return
+	else
+		profile.aura -= def.priceAura
+		profile.unlocked[trailId] = true
+	end
+	PlayerData.MarkDirty(player)
+	checkAchievements(player)
+	pushStats(player)
+	sfx(player, "Purchase")
+	CosmeticResult:FireClient(player, true, "Purchased " .. def.name)
+	toast(player, "Unlocked " .. def.name, "good")
+	PlayerData.Save(player)
+end)
+
+EquipCosmetic.OnServerEvent:Connect(function(player, trailId)
+	if not shopLimiter:Allow("eq_" .. player.UserId) then
+		return
+	end
+	if type(trailId) ~= "string" then
+		return
+	end
+	local profile = PlayerData.Get(player)
+	local def = CosmeticsCatalog.GetTrail(trailId)
+	if not profile or not def then
+		return
+	end
+	if not profile.unlocked[trailId] then
+		toast(player, "You don't own that", "warn")
+		return
+	end
+	profile.equippedTrail = trailId
+	PlayerData.MarkDirty(player)
+	applyTrail(player)
+	pushStats(player)
+	sfx(player, "Equip")
+	toast(player, "Equipped " .. def.name, "info")
+end)
+
+ClaimQuest.OnServerEvent:Connect(function(player, questId)
+	if not claimLimiter:Allow("cq_" .. player.UserId) then
+		return
+	end
+	if type(questId) ~= "string" then
+		return
+	end
+	local profile = PlayerData.Get(player)
+	if not profile then
+		return
+	end
+	local ok, msg, a, c = QuestService.TryClaim(profile, questId)
+	if ok then
+		PlayerData.MarkDirty(player)
+		pushStats(player)
+		pushQuests(player)
+		sfx(player, "Purchase")
+		QuestResult:FireClient(player, true, msg, a, c)
+		toast(player, msg .. string.format(" (+%d Aura)", a or 0), "good")
+		PlayerData.Save(player)
+	else
+		QuestResult:FireClient(player, false, msg)
+		toast(player, tostring(msg), "warn")
+	end
+end)
+
+RequestLeaderboard.OnServerEvent:Connect(function(player)
+	if not shopLimiter:Allow("lb_" .. player.UserId) then
+		return
+	end
+	local rows = OrderedStats.GetTop(10)
+	LeaderboardUpdate:FireClient(player, rows)
+end)
+
+SettingsUpdate.OnServerEvent:Connect(function(player, settings)
+	if type(settings) ~= "table" then
+		return
+	end
+	local profile = PlayerData.Get(player)
+	if not profile then
+		return
+	end
+	if type(profile.settings) ~= "table" then
+		profile.settings = {}
+	end
+	if settings.music ~= nil then
+		profile.settings.music = settings.music == true
+	end
+	if settings.sfx ~= nil then
+		profile.settings.sfx = settings.sfx == true
+	end
+	if settings.reduceFx ~= nil then
+		profile.settings.reduceFx = settings.reduceFx == true
+	end
+	PlayerData.MarkDirty(player)
+	pushStats(player)
+end)
+
+TutorialComplete.OnServerEvent:Connect(function(player)
+	local profile = PlayerData.Get(player)
+	if not profile then
+		return
+	end
+	profile.tutorialDone = true
+	PlayerData.MarkDirty(player)
+	toast(player, "Tutorial done — good luck!", "good")
+end)
+
+game:BindToClose(function()
+	print("[ObbyServer] BindToClose — saving all")
+	PlayerData.SaveAll()
+	task.wait(2)
+end)
+
+print("[ObbyServer] Ready —", ObbyConfig.GameName, "v" .. ObbyConfig.Version)
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="22">
+      <Properties>
+        <string name="Name">OfflineEarnings</string>
+        <string name="Source"><![CDATA[-- Soft offline aura drip while away. Capped so it never replaces playing.
+
+local OfflineEarnings = {}
+
+local RATE_PER_HOUR = 12
+local MAX_HOURS = 8
+local MIN_SECONDS = 5 * 60
+
+function OfflineEarnings.Collect(profile: any): { aura: number, seconds: number, label: string }?
+	if typeof(profile) ~= "table" then
+		return nil
+	end
+	local last = profile.lastLogoutAt or profile.lastSeen
+	if typeof(last) ~= "number" then
+		profile.lastSeen = os.time()
+		return nil
+	end
+	local dt = os.time() - last
+	if dt < MIN_SECONDS then
+		profile.lastSeen = os.time()
+		return nil
+	end
+	local hours = math.min(dt / 3600, MAX_HOURS)
+	local aura = math.floor(hours * RATE_PER_HOUR)
+	if aura < 1 then
+		profile.lastSeen = os.time()
+		return nil
+	end
+	profile.lastSeen = os.time()
+	local label
+	if hours >= 1 then
+		label = string.format("%.1fh away", hours)
+	else
+		label = string.format("%dm away", math.floor(dt / 60))
+	end
+	return {
+		aura = aura,
+		seconds = dt,
+		label = label,
+	}
+end
+
+function OfflineEarnings.Touch(profile: any)
+	if typeof(profile) == "table" then
+		profile.lastSeen = os.time()
+	end
+end
+
+return OfflineEarnings
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="23">
+      <Properties>
+        <string name="Name">OrderedStats</string>
+        <string name="Source"><![CDATA[-- OrderedDataStore best-time board.
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+
+local OrderedStats = {}
+
+local STORE_NAME = "AuraFarmBestTimes_v1"
+local ordered: OrderedDataStore? = nil
+local cache: { { name: string, userId: number, time: number } } = {}
+local cacheAt = 0
+
+function OrderedStats.Init()
+	pcall(function()
+		ordered = DataStoreService:GetOrderedDataStore(STORE_NAME)
+	end)
+	print("[OrderedStats] Ready", ordered ~= nil)
+end
+
+-- Lower time is better. Store as score = large - centiseconds so higher Ordered score = faster.
+local SCORE_BASE = 100000000
+
+function OrderedStats.Submit(player: Player, timeSec: number)
+	if not ordered or timeSec <= 0 then
+		return
+	end
+	local cs = math.floor(timeSec * 100 + 0.5)
+	local score = SCORE_BASE - cs
+	if score < 1 then
+		score = 1
+	end
+	local key = tostring(player.UserId)
+	pcall(function()
+		ordered:UpdateAsync(key, function(old)
+			if typeof(old) == "number" and old >= score then
+				return old -- already better (higher score = faster)
+			end
+			return score
+		end)
+	end)
+	cacheAt = 0 -- invalidate
+end
+
+function OrderedStats.GetTop(n: number): { { name: string, userId: number, time: number } }
+	n = math.clamp(n or 10, 1, 50)
+	if os.clock() - cacheAt < 15 and #cache > 0 then
+		local out = {}
+		for i = 1, math.min(n, #cache) do
+			out[i] = cache[i]
+		end
+		return out
+	end
+	local rows = {}
+	if ordered then
+		local ok, pages = pcall(function()
+			return ordered:GetSortedAsync(false, n) -- false = descending score = faster times first
+		end)
+		if ok and pages then
+			local page = pages:GetCurrentPage()
+			for _, entry in page do
+				local userId = tonumber(entry.key) or 0
+				local score = entry.value
+				local cs = SCORE_BASE - score
+				local timeSec = cs / 100
+				local name = "Player"
+				local plr = Players:GetPlayerByUserId(userId)
+				if plr then
+					name = plr.DisplayName
+				else
+					pcall(function()
+						name = Players:GetNameFromUserIdAsync(userId)
+					end)
+				end
+				table.insert(rows, {
+					name = name,
+					userId = userId,
+					time = timeSec,
+				})
+			end
+		end
+	end
+	cache = rows
+	cacheAt = os.clock()
+	return rows
+end
+
+return OrderedStats
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="24">
+      <Properties>
+        <string name="Name">PlayerData</string>
+        <string name="Source"><![CDATA[-- Lightweight DataStore profile. Session-safe: load, dirty autosave, save on leave.
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+
+local ObbyConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("ObbyConfig"))
+
+local PlayerData = {}
+
+-- Keep v4 key so existing saves still load; nested multi-stage fields are additive.
+local STORE_NAME = "AuraFarmObby_v4"
+local store: DataStore? = nil
+pcall(function()
+	store = DataStoreService:GetDataStore(STORE_NAME)
+end)
+
+export type Profile = {
+	aura: number,
+	coins: number,
+	bestTime: number?,
+	bestTimes: { [string]: number },
+	stagesCleared: { [string]: boolean },
+	totalFinishes: number,
+	totalOrbs: number,
+	totalDeaths: number,
+	unlocked: { [string]: boolean },
+	equippedTrail: string?,
+	achievements: { [string]: boolean },
+	loginStreak: number,
+	lastLoginDay: number?,
+	lastSeen: number?,
+	lastLogoutAt: number?,
+	daily: any,
+	stats: { [string]: number },
+	settings: { [string]: any },
+	tutorialDone: boolean,
+	currentStage: number,
+}
+
+local profiles: { [number]: Profile } = {}
+local dirty: { [number]: boolean } = {}
+
+local function defaultProfile(): Profile
+	return {
+		aura = ObbyConfig.StartingAura or 0,
+		coins = ObbyConfig.StartingCoins or 0,
+		bestTime = nil,
+		bestTimes = {},
+		stagesCleared = {},
+		totalFinishes = 0,
+		totalOrbs = 0,
+		totalDeaths = 0,
+		unlocked = { default = true },
+		equippedTrail = "default",
+		achievements = {},
+		loginStreak = 0,
+		lastLoginDay = nil,
+		lastSeen = os.time(),
+		lastLogoutAt = nil,
+		daily = nil,
+		stats = {
+			orbs = 0,
+			kills = 0,
+			playMinutes = 0,
+			finishes = 0,
+		},
+		settings = {
+			sfx = true,
+			reduceFx = false,
+		},
+		tutorialDone = false,
+		currentStage = 1,
+	}
+end
+
+local function reconcile(raw: any): Profile
+	local d = defaultProfile()
+	if typeof(raw) ~= "table" then
+		return d
+	end
+	if typeof(raw.aura) == "number" then
+		d.aura = math.max(0, math.floor(raw.aura))
+	end
+	if typeof(raw.coins) == "number" then
+		d.coins = math.max(0, math.floor(raw.coins))
+	end
+	if typeof(raw.bestTime) == "number" and raw.bestTime > 0 then
+		d.bestTime = raw.bestTime
+	end
+	if typeof(raw.bestTimes) == "table" then
+		for k, v in raw.bestTimes do
+			if typeof(v) == "number" and v > 0 then
+				d.bestTimes[tostring(k)] = v
+			end
+		end
+	end
+	if typeof(raw.stagesCleared) == "table" then
+		for k, v in raw.stagesCleared do
+			if v then
+				d.stagesCleared[tostring(k)] = true
+			end
+		end
+	end
+	if typeof(raw.totalFinishes) == "number" then
+		d.totalFinishes = math.max(0, math.floor(raw.totalFinishes))
+		if d.totalFinishes > 0 and not next(d.stagesCleared) then
+			d.stagesCleared["1"] = true
+		end
+	end
+	if typeof(raw.totalOrbs) == "number" then
+		d.totalOrbs = math.max(0, math.floor(raw.totalOrbs))
+	end
+	if typeof(raw.totalDeaths) == "number" then
+		d.totalDeaths = math.max(0, math.floor(raw.totalDeaths))
+	end
+	if typeof(raw.unlocked) == "table" then
+		for k, v in raw.unlocked do
+			if v then
+				d.unlocked[tostring(k)] = true
+			end
+		end
+	end
+	d.unlocked.default = true
+	if typeof(raw.equippedTrail) == "string" then
+		d.equippedTrail = raw.equippedTrail
+	end
+	if typeof(raw.achievements) == "table" then
+		for k, v in raw.achievements do
+			if v then
+				d.achievements[tostring(k)] = true
+			end
+		end
+	end
+	if typeof(raw.loginStreak) == "number" then
+		d.loginStreak = math.max(0, math.floor(raw.loginStreak))
+	end
+	if typeof(raw.lastLoginDay) == "number" then
+		d.lastLoginDay = raw.lastLoginDay
+	end
+	if typeof(raw.lastSeen) == "number" then
+		d.lastSeen = raw.lastSeen
+	end
+	if typeof(raw.lastLogoutAt) == "number" then
+		d.lastLogoutAt = raw.lastLogoutAt
+	end
+	if raw.daily ~= nil then
+		d.daily = raw.daily
+	end
+	if typeof(raw.stats) == "table" then
+		for k, v in raw.stats do
+			if typeof(v) == "number" then
+				d.stats[tostring(k)] = v
+			end
+		end
+	end
+	if typeof(raw.settings) == "table" then
+		for k, v in raw.settings do
+			d.settings[tostring(k)] = v
+		end
+	end
+	if raw.tutorialDone == true then
+		d.tutorialDone = true
+	end
+	if typeof(raw.currentStage) == "number" then
+		d.currentStage = math.clamp(math.floor(raw.currentStage), 1, 99)
+	end
+	return d
+end
+
+function PlayerData.Init()
+	-- reserved for future ProfileService swap-in
+	print("[PlayerData] Ready store=", STORE_NAME, store ~= nil)
+end
+
+function PlayerData.Get(player: Player): Profile?
+	return profiles[player.UserId]
+end
+
+function PlayerData.MarkDirty(player: Player)
+	dirty[player.UserId] = true
+end
+
+function PlayerData.HasCleared(profile: Profile, stageId: number): boolean
+	return profile.stagesCleared[tostring(stageId)] == true
+end
+
+function PlayerData.IsStageUnlocked(profile: Profile, stageId: number, requiresStage: number?): boolean
+	if stageId <= 1 then
+		return true
+	end
+	local req = requiresStage or (stageId - 1)
+	return PlayerData.HasCleared(profile, req)
+end
+
+function PlayerData.Snapshot(player: Player): { [string]: any }?
+	local p = profiles[player.UserId]
+	if not p then
+		return nil
+	end
+	local cleared = {}
+	for k in p.stagesCleared do
+		table.insert(cleared, tonumber(k) or 0)
+	end
+	table.sort(cleared)
+	return {
+		aura = p.aura,
+		coins = p.coins,
+		bestTime = p.bestTime,
+		bestTimes = p.bestTimes,
+		stagesCleared = cleared,
+		totalFinishes = p.totalFinishes,
+		totalOrbs = p.totalOrbs,
+		totalDeaths = p.totalDeaths,
+		unlocked = p.unlocked,
+		equippedTrail = p.equippedTrail,
+		achievements = p.achievements,
+		loginStreak = p.loginStreak,
+		stats = p.stats,
+		settings = p.settings,
+		tutorialDone = p.tutorialDone,
+		currentStage = p.currentStage,
+		daily = p.daily,
+	}
+end
+
+function PlayerData.Load(player: Player): Profile
+	local userId = player.UserId
+	local key = "u_" .. userId
+	local loaded = nil
+	if store then
+		local ok, data = pcall(function()
+			return store:GetAsync(key)
+		end)
+		if ok then
+			loaded = data
+		else
+			warn("[PlayerData] GetAsync failed", data)
+		end
+	end
+	local profile = reconcile(loaded)
+
+	local day = math.floor(os.time() / 86400)
+	if profile.lastLoginDay == nil then
+		profile.loginStreak = math.max(profile.loginStreak, 1)
+	elseif profile.lastLoginDay == day then
+		-- same day
+	elseif profile.lastLoginDay == day - 1 then
+		profile.loginStreak += 1
+	else
+		profile.loginStreak = 1
+	end
+	profile.lastLoginDay = day
+	profile.lastSeen = os.time()
+
+	profiles[userId] = profile
+	dirty[userId] = true
+	return profile
+end
+
+local function serialize(profile: Profile): { [string]: any }
+	return {
+		aura = profile.aura,
+		coins = profile.coins,
+		bestTime = profile.bestTime,
+		bestTimes = profile.bestTimes,
+		stagesCleared = profile.stagesCleared,
+		totalFinishes = profile.totalFinishes,
+		totalOrbs = profile.totalOrbs,
+		totalDeaths = profile.totalDeaths,
+		unlocked = profile.unlocked,
+		equippedTrail = profile.equippedTrail,
+		achievements = profile.achievements,
+		loginStreak = profile.loginStreak,
+		lastLoginDay = profile.lastLoginDay,
+		lastSeen = profile.lastSeen,
+		lastLogoutAt = profile.lastLogoutAt,
+		daily = profile.daily,
+		stats = profile.stats,
+		settings = profile.settings,
+		tutorialDone = profile.tutorialDone,
+		currentStage = profile.currentStage,
+	}
+end
+
+function PlayerData.Save(player: Player): boolean
+	local userId = player.UserId
+	local profile = profiles[userId]
+	if not profile then
+		return false
+	end
+	profile.lastSeen = os.time()
+	profile.lastLogoutAt = os.time()
+	if not store then
+		dirty[userId] = false
+		return false
+	end
+	local key = "u_" .. userId
+	local payload = serialize(profile)
+	local ok, err = pcall(function()
+		store:UpdateAsync(key, function()
+			return payload
+		end)
+	end)
+	if not ok then
+		warn("[PlayerData] Save failed", player.Name, err)
+		return false
+	end
+	dirty[userId] = false
+	return true
+end
+
+function PlayerData.SaveAll()
+	for _, player in Players:GetPlayers() do
+		pcall(function()
+			PlayerData.Save(player)
+		end)
+	end
+end
+
+task.spawn(function()
+	while true do
+		task.wait(45)
+		for _, player in Players:GetPlayers() do
+			if dirty[player.UserId] then
+				pcall(function()
+					PlayerData.Save(player)
+				end)
+			end
+		end
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	pcall(function()
+		PlayerData.Save(player)
+	end)
+	profiles[player.UserId] = nil
+	dirty[player.UserId] = nil
+end)
+
+return PlayerData
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="25">
+      <Properties>
+        <string name="Name">QuestService</string>
+        <string name="Source"><![CDATA[-- Daily quests + progress tracking.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local DailyQuests = require(Shared:WaitForChild("DailyQuests"))
+local TimeUtil = require(Shared:WaitForChild("TimeUtil"))
+
+local QuestService = {}
+
+local function daySeed(): number
+	local ymd = TimeUtil.UtcYmd(os.time())
+	-- simple hash
+	local h = 0
+	for i = 1, #ymd do
+		h = (h * 33 + string.byte(ymd, i)) % 1000000
+	end
+	return h
+end
+
+local function ensureDaily(profile)
+	local today = TimeUtil.UtcYmd(os.time())
+	if typeof(profile.daily) == "table" and profile.daily.day == today then
+		return
+	end
+	local picks = DailyQuests.PickForDay(daySeed())
+	local quests = {}
+	for _, def in picks do
+		quests[def.id] = {
+			id = def.id,
+			progress = 0,
+			target = def.target,
+			claimed = false,
+			stat = def.stat,
+			name = def.name,
+			description = def.description,
+			rewardAura = def.rewardAura,
+			rewardCoins = def.rewardCoins,
+		}
+	end
+	profile.daily = {
+		day = today,
+		quests = quests,
+	}
+end
+
+function QuestService.Ensure(profile)
+	ensureDaily(profile)
+end
+
+function QuestService.Record(profile, stat: string, amount: number?)
+	ensureDaily(profile)
+	local amt = amount or 1
+	local daily = profile.daily
+	if not daily or not daily.quests then
+		return
+	end
+	for _, q in daily.quests do
+		if q.stat == stat and not q.claimed then
+			q.progress = math.min(q.target, (q.progress or 0) + amt)
+		end
+	end
+end
+
+function QuestService.Snapshot(profile): { [string]: any }
+	ensureDaily(profile)
+	local list = {}
+	for _, q in profile.daily.quests do
+		table.insert(list, {
+			id = q.id,
+			name = q.name,
+			description = q.description,
+			progress = q.progress,
+			target = q.target,
+			claimed = q.claimed,
+			rewardAura = q.rewardAura,
+			rewardCoins = q.rewardCoins,
+			complete = q.progress >= q.target,
+		})
+	end
+	table.sort(list, function(a, b)
+		return a.id < b.id
+	end)
+	return {
+		day = profile.daily.day,
+		quests = list,
+	}
+end
+
+function QuestService.TryClaim(profile, questId: string): (boolean, string, number?, number?)
+	ensureDaily(profile)
+	local q = profile.daily.quests[questId]
+	if not q then
+		return false, "Unknown quest", nil, nil
+	end
+	if q.claimed then
+		return false, "Already claimed", nil, nil
+	end
+	if (q.progress or 0) < q.target then
+		return false, "Not complete", nil, nil
+	end
+	q.claimed = true
+	profile.aura = (profile.aura or 0) + (q.rewardAura or 0)
+	profile.coins = (profile.coins or 0) + (q.rewardCoins or 0)
+	return true, "Claimed " .. (q.name or questId), q.rewardAura, q.rewardCoins
+end
+
+return QuestService
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="26">
+      <Properties>
+        <string name="Name">SoftShutdown</string>
+        <string name="Source"><![CDATA[-- Soft shutdown / BindToClose so DataStores flush before the server dies.
+-- Roblox gives ~30s on BindToClose; we save everyone and optionally notify.
+
+local Players = game:GetService("Players")
+
+local SoftShutdown = {}
+
+function SoftShutdown.Bind(saveAll: () -> (), opts: { notifyRemote: RemoteEvent? }?)
+	game:BindToClose(function()
+		print("[SoftShutdown] Closing — saving all profiles…")
+		local notify = opts and opts.notifyRemote
+		if notify then
+			for _, p in Players:GetPlayers() do
+				pcall(function()
+					notify:FireClient(p, {
+						kind = "shutdown",
+						message = "Server restarting — progress saved. Rejoin in a moment.",
+					})
+				end)
+			end
+		end
+
+		local ok, err = pcall(saveAll)
+		if not ok then
+			warn("[SoftShutdown] saveAll failed:", err)
+		end
+
+		-- Brief window so last remote packets can flush
+		if #Players:GetPlayers() > 0 then
+			task.wait(2)
+		end
+		print("[SoftShutdown] Done")
+	end)
+end
+
+return SoftShutdown
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="27">
+      <Properties>
+        <string name="Name">StageBuilder</string>
+        <string name="Source"><![CDATA[-- Multi-stage designed parkour (Meadow / Canyon / Neon).
+-- Uses ParkourKit primitives + StageConfig data. Forward axis = -Z.
+
+local StageConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("StageConfig"))
+local ParkourKit = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("ParkourKit"))
+local ObbyConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("ObbyConfig"))
+
+local StageBuilder = {}
+
+local function themeFrom(def): ParkourKit.Theme
+	return {
+		path = def.pathColor,
+		accent = def.accentColor,
+		kill = def.killColor,
+		metal = Color3.fromRGB(90, 95, 110),
+		wood = Color3.fromRGB(120, 85, 55),
+	}
+end
+
+local function ox(def, x: number): number
+	return def.originX + x
+end
+
+-- ============================================================================
+-- STAGE 1 — Meadow Run (tutorial-friendly flow)
+-- ============================================================================
+local function buildMeadow(folder: Folder, def)
+	local T = themeFrom(def)
+	local y = def.baseY
+	local z = 0
+	local orbAura = def.orbAura
+
+	-- Plaza / spawn
+	ParkourKit.Pad(folder, Vector3.new(ox(def, 0), y, 20), Vector3.new(28, 1.4, 36), T, "Plaza")
+	ParkourKit.SafetyRails(folder, Vector3.new(ox(def, 0), y, 20), 36, 28, T)
+	ParkourKit.GuideArrow(folder, Vector3.new(ox(def, 0), y + 3, 6), T)
+
+	-- Spawn marker (ObbyServer looks for SpawnLocation or attribute)
+	local spawnPart = ParkourKit.Part({
+		Name = "StageSpawn",
+		Parent = folder,
+		Size = Vector3.new(6, 1, 6),
+		Position = Vector3.new(ox(def, 0), y + 1, 28),
+		Color = T.accent,
+		Material = Enum.Material.Neon,
+		Transparency = 0.4,
+		CanCollide = false,
+	})
+	spawnPart:SetAttribute("StageSpawn", true)
+	local sp = Instance.new("SpawnLocation")
+	sp.Name = "StartSpawn"
+	sp.Size = Vector3.new(6, 1, 6)
+	sp.Position = Vector3.new(ox(def, 0), y + 1.2, 28)
+	sp.Duration = 0
+	sp.Neutral = true
+	sp.Anchored = true
+	sp.Transparency = 0.5
+	sp.Parent = folder
+
+	-- Intro path
+	z = 0
+	ParkourKit.LongPath(folder, z, z - 40, y, ox(def, 0), 12, T)
+	z = -40
+	ParkourKit.Orb(folder, Vector3.new(ox(def, 0), y + 5, z + 10), orbAura)
+	ParkourKit.Checkpoint(folder, 1, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 12
+
+	-- Easy gap run
+	z = ParkourKit.GapRun(
+		folder,
+		Vector3.new(ox(def, 0), y, z),
+		5,
+		4.5,
+		Vector3.new(8, 1.2, 8),
+		T,
+		0
+	)
+	ParkourKit.Orb(folder, Vector3.new(ox(def, 3), y + 5, z + 6), orbAura)
+	z -= 6
+	ParkourKit.Checkpoint(folder, 2, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 14
+
+	-- Mild weave
+	z = ParkourKit.Weave(folder, Vector3.new(ox(def, 0), y, z), 6, 9, 5, Vector3.new(7, 1.2, 7), T)
+	ParkourKit.GuideArrow(folder, Vector3.new(ox(def, 0), y + 3, z + 4), T)
+	z -= 8
+	ParkourKit.Checkpoint(folder, 3, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 12
+
+	-- Stairs up
+	local stairEnd = ParkourKit.Staircase(folder, Vector3.new(ox(def, 0), y, z), 8, 1.5, 3.2, 10, T, -1)
+	y = stairEnd.Y
+	z = stairEnd.Z - 10
+	ParkourKit.LongPath(folder, z + 10, z - 20, y, ox(def, 0), 10, T)
+	z -= 20
+	ParkourKit.Orb(folder, Vector3.new(ox(def, -4), y + 5, z + 8), orbAura)
+	ParkourKit.Checkpoint(folder, 4, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 14
+
+	-- Moving pad + kill near miss
+	ParkourKit.MovingPad(folder, Vector3.new(ox(def, 0), y, z), Vector3.new(9, 1.2, 9), T, Vector3.new(1, 0, 0), 6, 3.2)
+	z -= 16
+	ParkourKit.KillBrick(folder, Vector3.new(ox(def, 0), y - 6, z + 8), Vector3.new(40, 1, 30), T)
+	ParkourKit.GapRun(folder, Vector3.new(ox(def, 0), y, z), 4, 5.5, Vector3.new(7, 1.2, 7), T, 2)
+	z -= 28
+
+	-- Finish plateau
+	ParkourKit.Pad(folder, Vector3.new(ox(def, 0), y, z), Vector3.new(22, 1.5, 22), T, "FinishPlaza")
+	ParkourKit.Finish(folder, Vector3.new(ox(def, 0), y + 0.4, z - 4), T)
+	ParkourKit.Orb(folder, Vector3.new(ox(def, 6), y + 6, z), orbAura)
+	ParkourKit.Orb(folder, Vector3.new(ox(def, -6), y + 6, z), orbAura)
+
+	-- Portal to next stage (visual + touch attribute)
+	local portal = ParkourKit.Part({
+		Name = "PortalTo2",
+		Parent = folder,
+		Size = Vector3.new(10, 12, 2),
+		Position = Vector3.new(ox(def, 14), y + 7, z - 4),
+		Color = Color3.fromRGB(160, 100, 255),
+		Material = Enum.Material.ForceField,
+		CanCollide = false,
+	})
+	portal:SetAttribute("PortalToStage", 2)
+end
+
+-- ============================================================================
+-- STAGE 2 — Crystal Canyon
+-- ============================================================================
+local function buildCanyon(folder: Folder, def)
+	local T = themeFrom(def)
+	local y = def.baseY
+	local z = 0
+	local orbAura = def.orbAura
+
+	ParkourKit.Pad(folder, Vector3.new(ox(def, 0), y, 18), Vector3.new(20, 1.4, 28), T, "Plaza")
+	local sp = Instance.new("SpawnLocation")
+	sp.Name = "StartSpawn"
+	sp.Size = Vector3.new(6, 1, 6)
+	sp.Position = Vector3.new(ox(def, 0), y + 1.2, 24)
+	sp.Duration = 0
+	sp.Neutral = true
+	sp.Anchored = true
+	sp.Transparency = 0.5
+	sp.Parent = folder
+
+	z = 0
+	ParkourKit.LongPath(folder, z, z - 24, y, ox(def, 0), 9, T)
+	z = -24
+	ParkourKit.Checkpoint(folder, 1, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 12
+
+	-- Height hops
+	for i = 1, 6 do
+		y += 2.2
+		ParkourKit.Pad(folder, Vector3.new(ox(def, (i % 2 == 0) and 4 or -4), y, z), Vector3.new(7, 1.2, 7), T, "Rise" .. i)
+		if i % 2 == 0 then
+			ParkourKit.Orb(folder, Vector3.new(ox(def, 0), y + 5, z), orbAura)
+		end
+		z -= 9
+	end
+	ParkourKit.Checkpoint(folder, 2, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 12
+
+	-- Tight weave
+	z = ParkourKit.Weave(folder, Vector3.new(ox(def, 0), y, z), 8, 8, 7, Vector3.new(5.5, 1.1, 5.5), T)
+	ParkourKit.KillBrick(folder, Vector3.new(ox(def, 0), y - 8, z + 20), Vector3.new(50, 1, 50), T)
+	z -= 10
+	ParkourKit.Checkpoint(folder, 3, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 14
+
+	-- Dual movers
+	ParkourKit.MovingPad(folder, Vector3.new(ox(def, -5), y, z), Vector3.new(7, 1.1, 7), T, Vector3.new(0, 0, 1), 5, 2.8)
+	ParkourKit.MovingPad(folder, Vector3.new(ox(def, 5), y, z - 12), Vector3.new(7, 1.1, 7), T, Vector3.new(1, 0, 0), 7, 3.4)
+	z -= 28
+	ParkourKit.GapRun(folder, Vector3.new(ox(def, 0), y, z), 5, 6, Vector3.new(6, 1.1, 6), T, 3)
+	z -= 30
+	ParkourKit.Checkpoint(folder, 4, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	ParkourKit.Orb(folder, Vector3.new(ox(def, 0), y + 6, z), orbAura)
+	z -= 12
+
+	-- Bounce into high path
+	ParkourKit.BouncePad(folder, Vector3.new(ox(def, 0), y, z), T, 85)
+	y += 14
+	z -= 18
+	ParkourKit.Pad(folder, Vector3.new(ox(def, 0), y, z), Vector3.new(12, 1.3, 14), T, "High")
+	ParkourKit.Checkpoint(folder, 5, Vector3.new(ox(def, 0), y + 0.2, z - 2), T)
+	z -= 16
+
+	ParkourKit.LongPath(folder, z, z - 22, y, ox(def, 0), 8, T)
+	z -= 22
+	ParkourKit.Pad(folder, Vector3.new(ox(def, 0), y, z), Vector3.new(20, 1.5, 20), T, "FinishPlaza")
+	ParkourKit.Finish(folder, Vector3.new(ox(def, 0), y + 0.4, z - 3), T)
+
+	local portal = ParkourKit.Part({
+		Name = "PortalTo3",
+		Parent = folder,
+		Size = Vector3.new(10, 12, 2),
+		Position = Vector3.new(ox(def, 14), y + 7, z - 3),
+		Color = Color3.fromRGB(80, 255, 230),
+		Material = Enum.Material.ForceField,
+		CanCollide = false,
+	})
+	portal:SetAttribute("PortalToStage", 3)
+end
+
+-- ============================================================================
+-- STAGE 3 — Neon Spire
+-- ============================================================================
+local function buildNeon(folder: Folder, def)
+	local T = themeFrom(def)
+	local y = def.baseY
+	local z = 0
+	local orbAura = def.orbAura
+
+	ParkourKit.Pad(folder, Vector3.new(ox(def, 0), y, 16), Vector3.new(16, 1.4, 24), T, "Plaza")
+	local sp = Instance.new("SpawnLocation")
+	sp.Name = "StartSpawn"
+	sp.Size = Vector3.new(5, 1, 5)
+	sp.Position = Vector3.new(ox(def, 0), y + 1.2, 22)
+	sp.Duration = 0
+	sp.Neutral = true
+	sp.Anchored = true
+	sp.Transparency = 0.5
+	sp.Parent = folder
+
+	z = 0
+	-- Narrow spine
+	ParkourKit.LongPath(folder, z, z - 20, y, ox(def, 0), 5, T)
+	z = -20
+	ParkourKit.Checkpoint(folder, 1, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 10
+
+	-- Precision gaps
+	z = ParkourKit.GapRun(folder, Vector3.new(ox(def, 0), y, z), 7, 6.5, Vector3.new(4.5, 1, 4.5), T, 1.5)
+	ParkourKit.KillBrick(folder, Vector3.new(ox(def, 0), y - 10, z + 25), Vector3.new(60, 1, 70), T)
+	z -= 8
+	ParkourKit.Checkpoint(folder, 2, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 12
+
+	-- Vertical spiral-ish stairs
+	for i = 1, 10 do
+		local ang = i * 0.7
+		local rx = math.cos(ang) * 6
+		local rz = z - i * 3.2
+		y += 1.8
+		ParkourKit.Pad(folder, Vector3.new(ox(def, rx), y, rz), Vector3.new(5, 1, 5), T, "Spiral" .. i)
+		if i % 3 == 0 then
+			ParkourKit.Orb(folder, Vector3.new(ox(def, rx), y + 4, rz), orbAura)
+		end
+	end
+	z = z - 10 * 3.2 - 8
+	ParkourKit.Checkpoint(folder, 3, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 12
+
+	-- Triple movers
+	for i = 1, 3 do
+		ParkourKit.MovingPad(
+			folder,
+			Vector3.new(ox(def, (i - 2) * 6), y, z - (i - 1) * 10),
+			Vector3.new(5.5, 1, 5.5),
+			T,
+			if i == 2 then Vector3.new(0, 1, 0) else Vector3.new(1, 0, 0),
+			if i == 2 then 4 else 6,
+			2.2 + i * 0.3
+		)
+	end
+	z -= 40
+	ParkourKit.Checkpoint(folder, 4, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 10
+
+	-- Weave high difficulty
+	z = ParkourKit.Weave(folder, Vector3.new(ox(def, 0), y, z), 10, 7.5, 8, Vector3.new(4.2, 1, 4.2), T)
+	z -= 8
+	ParkourKit.Checkpoint(folder, 5, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	ParkourKit.BouncePad(folder, Vector3.new(ox(def, 0), y, z - 8), T, 95)
+	y += 16
+	z -= 22
+	ParkourKit.Pad(folder, Vector3.new(ox(def, 0), y, z), Vector3.new(10, 1.2, 10), T, "Sky")
+	ParkourKit.Checkpoint(folder, 6, Vector3.new(ox(def, 0), y + 0.2, z), T)
+	z -= 14
+
+	-- Final gauntlet
+	z = ParkourKit.GapRun(folder, Vector3.new(ox(def, 0), y, z), 6, 7, Vector3.new(4, 1, 4), T, 2.5)
+	z -= 10
+	ParkourKit.Pad(folder, Vector3.new(ox(def, 0), y, z), Vector3.new(18, 1.5, 18), T, "FinishPlaza")
+	ParkourKit.Finish(folder, Vector3.new(ox(def, 0), y + 0.4, z - 2), T)
+	for i = -1, 1 do
+		ParkourKit.Orb(folder, Vector3.new(ox(def, i * 5), y + 6, z), orbAura)
+	end
+end
+
+local BUILDERS = {
+	[1] = buildMeadow,
+	[2] = buildCanyon,
+	[3] = buildNeon,
+}
+
+function StageBuilder.BuildAll(): Folder
+	local root = workspace:FindFirstChild("AuraFarmStages")
+	if root then
+		root:Destroy()
+	end
+	root = Instance.new("Folder")
+	root.Name = "AuraFarmStages"
+	root.Parent = workspace
+
+	for _, def in StageConfig.Stages do
+		local folder = Instance.new("Folder")
+		folder.Name = StageConfig.FolderName(def.id)
+		folder:SetAttribute("StageId", def.id)
+		folder:SetAttribute("StageName", def.name)
+		folder:SetAttribute("Theme", def.theme)
+		folder.Parent = root
+
+		local builder = BUILDERS[def.id]
+		if builder then
+			builder(folder, def)
+		else
+			warn("[StageBuilder] No builder for stage", def.id)
+		end
+		print(string.format("[StageBuilder] Built %s (%s)", folder.Name, def.name))
+	end
+
+	-- Lobby hub between stages
+	local lobby = Instance.new("Folder")
+	lobby.Name = "Lobby"
+	lobby.Parent = root
+	local hubY = 6
+	ParkourKit.Pad(
+		lobby,
+		StageConfig.LobbySpawn,
+		Vector3.new(40, 1.5, 40),
+		ParkourKit.DefaultTheme(),
+		"HubFloor"
+	)
+	local hubSpawn = Instance.new("SpawnLocation")
+	hubSpawn.Name = "LobbySpawn"
+	hubSpawn.Size = Vector3.new(8, 1, 8)
+	hubSpawn.Position = StageConfig.LobbySpawn + Vector3.new(0, 1.2, 0)
+	hubSpawn.Duration = 0
+	hubSpawn.Neutral = true
+	hubSpawn.Anchored = true
+	hubSpawn.BrickColor = BrickColor.new("Medium stone grey")
+	hubSpawn.Parent = lobby
+
+	-- Stage select pads
+	for _, def in StageConfig.Stages do
+		local pad = ParkourKit.Part({
+			Name = "SelectStage" .. def.id,
+			Parent = lobby,
+			Size = Vector3.new(10, 1.5, 10),
+			Position = StageConfig.LobbySpawn + Vector3.new((def.id - 2) * 14, 0.2, -16),
+			Color = def.accentColor,
+			Material = Enum.Material.Neon,
+		})
+		pad:SetAttribute("SelectStage", def.id)
+		local bb = Instance.new("BillboardGui")
+		bb.Size = UDim2.fromOffset(140, 50)
+		bb.StudsOffset = Vector3.new(0, 6, 0)
+		bb.AlwaysOnTop = true
+		bb.Parent = pad
+		local tl = Instance.new("TextLabel")
+		tl.Size = UDim2.fromScale(1, 1)
+		tl.BackgroundTransparency = 1
+		tl.Font = Enum.Font.GothamBold
+		tl.TextSize = 16
+		tl.TextColor3 = Color3.new(1, 1, 1)
+		tl.Text = string.format("Stage %d\n%s", def.id, def.name)
+		tl.Parent = bb
+	end
+
+	return root
+end
+
+-- Back-compat alias used by older ObbyServer
+function StageBuilder.Build(): Folder
+	return StageBuilder.BuildAll()
+end
+
+return StageBuilder
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="28">
+      <Properties>
+        <string name="Name">StageStreamer</string>
+        <string name="Source"><![CDATA[-- One-stage-at-a-time focus: hide other stage rooms + tighten fog.
+-- Server sets Model/Folder.ModelStreamingMode isn't enough alone for our part folders,
+-- so we toggle visibility/parenting of inactive rooms and retarget lighting fog.
+
+local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
+
+local StageConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("StageConfig"))
+local AuraTheme = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("AuraTheme"))
+
+local StageStreamer = {}
+
+local stagesRoot: Folder? = nil
+local terrainRoot: Folder? = nil
+local playerStage: { [number]: number } = {} -- userId → stageId (0 = lobby)
+
+local function setFolderVisible(folder: Instance?, visible: boolean)
+	if not folder then
+		return
+	end
+	for _, d in folder:GetDescendants() do
+		if d:IsA("BasePart") then
+			-- Keep void kill always on
+			if d.Name == "WorldVoidKill" or d.Name == "VoidVisual" then
+				continue
+			end
+			if visible then
+				local orig = d:GetAttribute("_OrigTrans")
+				if typeof(orig) == "number" then
+					d.Transparency = orig
+				end
+				d.LocalTransparencyModifier = 0
+				-- restore collide if it was a gameplay/ground piece
+				local oc = d:GetAttribute("_OrigCollide")
+				if typeof(oc) == "boolean" then
+					d.CanCollide = oc
+				end
+			else
+				if d:GetAttribute("_OrigTrans") == nil then
+					d:SetAttribute("_OrigTrans", d.Transparency)
+					d:SetAttribute("_OrigCollide", d.CanCollide)
+				end
+				-- Soft hide: transparent + no collide (except we skip void)
+				d.Transparency = 1
+				d.CanCollide = false
+				d.LocalTransparencyModifier = 1
+			end
+		elseif d:IsA("PointLight") or d:IsA("BillboardGui") then
+			if d:IsA("PointLight") then
+				d.Enabled = visible
+			elseif d:IsA("BillboardGui") then
+				d.Enabled = visible
+			end
+		end
+	end
+end
+
+function StageStreamer.Init(stages: Folder, terrain: Folder)
+	stagesRoot = stages
+	terrainRoot = terrain
+end
+
+function StageStreamer.GetPlayerStage(player: Player): number
+	return playerStage[player.UserId] or 0
+end
+
+function StageStreamer.Focus(player: Player, stageId: number)
+	playerStage[player.UserId] = stageId
+
+	-- Per-player visibility isn't native for parts without Replica/Viewport —
+	-- we use a shared focus based on majority / last enter, PLUS attribute for client fog.
+	player:SetAttribute("FocusedStage", stageId)
+
+	-- Shared world focus: show the requested stage for everyone if only one player,
+	-- or show all stages that any player is in.
+	StageStreamer.RebuildVisibility()
+
+	local def = StageConfig.Get(stageId)
+	if def then
+		-- Lighting bias toward that room (shared)
+		pcall(function()
+			Lighting.ClockTime = def.clockTime
+			Lighting.FogColor = def.fogColor
+			Lighting.FogStart = 40
+			Lighting.FogEnd = AuraTheme.Room.FocusFogEnd
+		end)
+	elseif stageId == 0 then
+		pcall(function()
+			AuraTheme.ApplyLighting(Lighting)
+			Lighting.FogEnd = AuraTheme.Room.LobbyFogEnd
+		end)
+	end
+end
+
+function StageStreamer.RebuildVisibility()
+	if not stagesRoot then
+		return
+	end
+
+	local needed: { [number]: boolean } = {}
+	local any = false
+	for _, plr in Players:GetPlayers() do
+		local sid = playerStage[plr.UserId]
+		if sid and sid > 0 then
+			needed[sid] = true
+			any = true
+		end
+	end
+	-- Lobby always needed if someone is there or nobody focused
+	local needLobby = false
+	for _, plr in Players:GetPlayers() do
+		local sid = playerStage[plr.UserId]
+		if not sid or sid == 0 then
+			needLobby = true
+		end
+	end
+	if not any then
+		needLobby = true
+		-- show stage 1 as default preview
+		needed[1] = true
+	end
+
+	for _, def in StageConfig.Stages do
+		local folder = stagesRoot:FindFirstChild(StageConfig.FolderName(def.id))
+		local show = needed[def.id] == true
+		setFolderVisible(folder, show)
+		if terrainRoot then
+			local room = terrainRoot:FindFirstChild("Room" .. def.id)
+			setFolderVisible(room, show)
+		end
+	end
+
+	if stagesRoot then
+		local lobby = stagesRoot:FindFirstChild("Lobby")
+		setFolderVisible(lobby, needLobby or not any)
+	end
+	if terrainRoot then
+		local lobbyDecor = terrainRoot:FindFirstChild("LobbyDecor")
+		setFolderVisible(lobbyDecor, needLobby or not any)
+		-- void always visible
+		setFolderVisible(terrainRoot:FindFirstChild("WorldVoidKill"), true)
+	end
+end
+
+function StageStreamer.ClearPlayer(player: Player)
+	playerStage[player.UserId] = nil
+	StageStreamer.RebuildVisibility()
+end
+
+return StageStreamer
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="29">
+      <Properties>
+        <string name="Name">TerrainGenerator</string>
+        <string name="Source"><![CDATA[-- Grounded "aura void" world: solid ground under every stage, cliffs, fog walls,
+-- ambient crystals. Gameplay pads stay on StageBuilder — this is the earth + atmosphere.
+
+local StageConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("StageConfig"))
+local AuraTheme = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("AuraTheme"))
+local ObbyConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("ObbyConfig"))
+
+local TerrainGenerator = {}
+TerrainGenerator.__index = TerrainGenerator
+
+local C = AuraTheme.Colors
+local M = AuraTheme.Materials
+
+local function part(props: { [string]: any }): BasePart
+	local p = Instance.new("Part")
+	p.Anchored = true
+	p.CanCollide = if props.CanCollide == nil then false else props.CanCollide
+	p.Material = props.Material or M.Ground
+	p.Color = props.Color or C.Ground
+	p.Size = props.Size or Vector3.new(4, 4, 4)
+	p.CFrame = props.CFrame or CFrame.new(props.Position or Vector3.zero)
+	p.Name = props.Name or "Decor"
+	p.Transparency = props.Transparency or 0
+	p.CastShadow = props.CastShadow ~= false
+	if props.Shape then
+		p.Shape = props.Shape
+	end
+	p.Parent = props.Parent
+	return p
+end
+
+function TerrainGenerator.new()
+	return setmetatable({}, TerrainGenerator)
+end
+
+-- Global void death plane — kills anyone who falls off the course
+function TerrainGenerator:_voidKill(parent: Instance)
+	-- Visual abyss
+	part({
+		Name = "VoidVisual",
+		Parent = parent,
+		Size = Vector3.new(4000, 8, 4000),
+		Position = Vector3.new(200, -55, -200),
+		Color = C.VoidDeep,
+		Material = Enum.Material.SmoothPlastic,
+		CanCollide = false,
+		Transparency = 0.2,
+		CastShadow = false,
+	})
+
+	-- Actual kill volume (wide + thick so you can't miss it)
+	local kill = part({
+		Name = "WorldVoidKill",
+		Parent = parent,
+		Size = Vector3.new(4000, 20, 4000),
+		Position = Vector3.new(200, -70, -200),
+		Color = C.Danger,
+		Material = M.Glow,
+		CanCollide = true,
+		Transparency = 0.85,
+		CastShadow = false,
+	})
+	kill:SetAttribute(ObbyConfig.KillTag, true)
+	kill:SetAttribute("Kill", true)
+
+	-- Soft fog wall rings (visual only)
+	for i = 1, 6 do
+		local r = 180 + i * 40
+		part({
+			Name = "FogRing" .. i,
+			Parent = parent,
+			Size = Vector3.new(r * 2, 80, r * 2),
+			Position = Vector3.new(200, 20, -100),
+			Color = C.Fog,
+			Material = M.Force,
+			CanCollide = false,
+			Transparency = 0.92,
+			CastShadow = false,
+		})
+	end
+end
+
+-- Solid ground plate under a stage so it never looks "floating in nothing"
+function TerrainGenerator:_groundPlate(
+	parent: Instance,
+	originX: number,
+	baseY: number,
+	lengthZ: number,
+	width: number,
+	color: Color3
+)
+	local groundY = baseY - 14
+	-- Main earth slab under the whole run
+	part({
+		Name = "GroundSlab",
+		Parent = parent,
+		Size = Vector3.new(width, 18, lengthZ),
+		Position = Vector3.new(originX, groundY, -lengthZ * 0.45),
+		Color = color,
+		Material = M.Ground,
+		CanCollide = true, -- can stand if you fall to the shelf
+		CastShadow = true,
+	})
+	-- Side berms
+	for _, side in { -1, 1 } do
+		part({
+			Name = "Berm",
+			Parent = parent,
+			Size = Vector3.new(14, 22, lengthZ * 0.9),
+			Position = Vector3.new(originX + side * (width * 0.5 + 4), groundY + 2, -lengthZ * 0.4),
+			Color = Color3.fromRGB(
+				math.clamp(math.floor(color.R * 255) - 10, 0, 255),
+				math.clamp(math.floor(color.G * 255) - 8, 0, 255),
+				math.clamp(math.floor(color.B * 255) + 10, 0, 255)
+			),
+			Material = M.Rock,
+			CanCollide = true,
+		})
+	end
+	-- Kill shelf edge: if you walk off the ground plate you still hit void
+	-- (void kill is global)
+end
+
+function TerrainGenerator:_roomShell(parent: Instance, originX: number, baseY: number, theme: string)
+	-- Soft walls so each stage feels like a "room" in the void
+	local wallColor = if theme == "neon"
+		then Color3.fromRGB(20, 16, 40)
+		elseif theme == "canyon" then Color3.fromRGB(35, 25, 55)
+		else Color3.fromRGB(30, 40, 50)
+
+	for _, side in { -1, 1 } do
+		part({
+			Name = "RoomWall",
+			Parent = parent,
+			Size = Vector3.new(6, 90, 320),
+			Position = Vector3.new(originX + side * 95, baseY + 20, -120),
+			Color = wallColor,
+			Material = M.Rock,
+			CanCollide = false,
+			Transparency = 0.35,
+		})
+	end
+	-- Back wall
+	part({
+		Name = "RoomBack",
+		Parent = parent,
+		Size = Vector3.new(200, 90, 6),
+		Position = Vector3.new(originX, baseY + 20, 50),
+		Color = wallColor,
+		Material = M.Rock,
+		CanCollide = false,
+		Transparency = 0.4,
+	})
+	-- Far wall
+	part({
+		Name = "RoomFar",
+		Parent = parent,
+		Size = Vector3.new(200, 90, 6),
+		Position = Vector3.new(originX, baseY + 20, -300),
+		Color = wallColor,
+		Material = M.Rock,
+		CanCollide = false,
+		Transparency = 0.45,
+	})
+end
+
+function TerrainGenerator:_meadow(parent: Instance, originX: number, baseY: number, rng: Random)
+	local decor = Instance.new("Folder")
+	decor.Name = "MeadowDecor"
+	decor.Parent = parent
+
+	self:_groundPlate(decor, originX, baseY, 280, 70, Color3.fromRGB(32, 48, 40))
+	self:_roomShell(decor, originX, baseY, "meadow")
+
+	-- Soft grass mounds
+	for i = 1, 36 do
+		local side = if rng:NextNumber() > 0.5 then 1 else -1
+		local x = originX + side * (16 + rng:NextNumber() * 40)
+		local z = 10 - rng:NextNumber() * 240
+		local h = 3 + rng:NextNumber() * 10
+		part({
+			Name = "Hill" .. i,
+			Parent = decor,
+			Size = Vector3.new(10 + rng:NextNumber() * 16, h, 10 + rng:NextNumber() * 14),
+			Position = Vector3.new(x, baseY - 10 + h * 0.35, z),
+			Color = Color3.fromRGB(40 + rng:NextInteger(0, 30), 90 + rng:NextInteger(0, 40), 70),
+			Material = Enum.Material.Grass,
+			CanCollide = false,
+		})
+	end
+
+	-- Aura trees (purple-tinted canopy = farm vibe)
+	for i = 1, 22 do
+		local side = if rng:NextNumber() > 0.5 then 1 else -1
+		local x = originX + side * (20 + rng:NextNumber() * 36)
+		local z = -rng:NextNumber() * 220
+		local trunkH = 7 + rng:NextNumber() * 5
+		part({
+			Name = "Trunk" .. i,
+			Parent = decor,
+			Size = Vector3.new(1.5, trunkH, 1.5),
+			Position = Vector3.new(x, baseY - 6 + trunkH * 0.5, z),
+			Color = Color3.fromRGB(70, 50, 40),
+			Material = Enum.Material.Wood,
+			CanCollide = false,
+		})
+		part({
+			Name = "Canopy" .. i,
+			Parent = decor,
+			Size = Vector3.new(9, 7, 9),
+			Position = Vector3.new(x, baseY - 6 + trunkH + 2.5, z),
+			Color = Color3.fromRGB(90 + rng:NextInteger(0, 40), 60, 140 + rng:NextInteger(0, 40)),
+			Material = Enum.Material.Grass,
+			Shape = Enum.PartType.Ball,
+			CanCollide = false,
+		})
+	end
+
+	-- Path lanterns
+	for i = 0, 14 do
+		local z = -i * 16
+		for _, side in { -1, 1 } do
+			local x = originX + side * 11
+			part({
+				Name = "LanternPole",
+				Parent = decor,
+				Size = Vector3.new(0.55, 8, 0.55),
+				Position = Vector3.new(x, baseY - 2, z),
+				Color = Color3.fromRGB(50, 45, 70),
+				Material = M.Metal,
+				CanCollide = false,
+			})
+			local glow = part({
+				Name = "LanternGlow",
+				Parent = decor,
+				Size = Vector3.new(1.4, 1.4, 1.4),
+				Position = Vector3.new(x, baseY + 3, z),
+				Color = C.Accent,
+				Material = M.Glow,
+				CanCollide = false,
+				CastShadow = false,
+			})
+			local pl = Instance.new("PointLight")
+			pl.Brightness = 1.4
+			pl.Range = 20
+			pl.Color = C.Accent
+			pl.Parent = glow
+		end
+	end
+end
+
+function TerrainGenerator:_canyon(parent: Instance, originX: number, baseY: number, rng: Random)
+	local decor = Instance.new("Folder")
+	decor.Name = "CanyonDecor"
+	decor.Parent = parent
+
+	self:_groundPlate(decor, originX, baseY, 300, 64, Color3.fromRGB(36, 28, 55))
+	self:_roomShell(decor, originX, baseY, "canyon")
+
+	for i = 1, 26 do
+		local side = if i % 2 == 0 then 1 else -1
+		local x = originX + side * (14 + rng:NextNumber() * 12)
+		local z = -rng:NextNumber() * 280
+		local h = 18 + rng:NextNumber() * 36
+		part({
+			Name = "Cliff" .. i,
+			Parent = decor,
+			Size = Vector3.new(12 + rng:NextNumber() * 10, h, 16 + rng:NextNumber() * 18),
+			Position = Vector3.new(x, baseY - 8 + h * 0.3, z),
+			Color = Color3.fromRGB(60 + rng:NextInteger(0, 30), 45, 90 + rng:NextInteger(0, 40)),
+			Material = M.Rock,
+			CanCollide = true,
+		})
+	end
+
+	for i = 1, 34 do
+		local side = if rng:NextNumber() > 0.5 then 1 else -1
+		local x = originX + side * (10 + rng:NextNumber() * 32)
+		local z = -rng:NextNumber() * 260
+		local h = 6 + rng:NextNumber() * 14
+		local crystal = part({
+			Name = "Crystal" .. i,
+			Parent = decor,
+			Size = Vector3.new(2.2, h, 2.2),
+			Position = Vector3.new(x, baseY - 6 + h * 0.45, z),
+			Color = Color3.fromRGB(150 + rng:NextInteger(0, 70), 100, 255),
+			Material = M.Glow,
+			CanCollide = false,
+			Transparency = 0.12,
+		})
+		crystal.CFrame = CFrame.new(crystal.Position)
+			* CFrame.Angles(rng:NextNumber() * 0.35, rng:NextNumber() * 3, rng:NextNumber() * 0.35)
+		local pl = Instance.new("PointLight")
+		pl.Brightness = 1.0
+		pl.Range = 16
+		pl.Color = C.Accent
+		pl.Parent = crystal
+	end
+end
+
+function TerrainGenerator:_neon(parent: Instance, originX: number, baseY: number, rng: Random)
+	local decor = Instance.new("Folder")
+	decor.Name = "NeonDecor"
+	decor.Parent = parent
+
+	self:_groundPlate(decor, originX, baseY, 320, 60, Color3.fromRGB(18, 16, 32))
+	self:_roomShell(decor, originX, baseY, "neon")
+
+	-- City grid floor under path (visual)
+	for i = 0, 20 do
+		local z = -i * 14
+		part({
+			Name = "GridLine",
+			Parent = decor,
+			Size = Vector3.new(50, 0.3, 0.6),
+			Position = Vector3.new(originX, baseY - 12.5, z),
+			Color = C.AccentCool,
+			Material = M.Glow,
+			CanCollide = false,
+			Transparency = 0.4,
+			CastShadow = false,
+		})
+	end
+
+	for i = 1, 20 do
+		local side = if i % 2 == 0 then 1 else -1
+		local x = originX + side * (18 + (i % 5) * 7)
+		local z = -i * 13
+		local h = 28 + (i * 9) % 55
+		part({
+			Name = "Tower" .. i,
+			Parent = decor,
+			Size = Vector3.new(7, h, 7),
+			Position = Vector3.new(x, baseY - 8 + h * 0.35, z),
+			Color = Color3.fromRGB(22, 24, 40),
+			Material = M.Metal,
+			CanCollide = false,
+		})
+		local strip = part({
+			Name = "Strip" .. i,
+			Parent = decor,
+			Size = Vector3.new(7.4, 1.4, 0.7),
+			Position = Vector3.new(x, baseY + 6 + (i % 5) * 5, z + 3.5),
+			Color = if i % 2 == 0 then C.AccentCool else C.AccentHot,
+			Material = M.Glow,
+			CanCollide = false,
+			CastShadow = false,
+		})
+		local pl = Instance.new("PointLight")
+		pl.Brightness = 1.6
+		pl.Range = 24
+		pl.Color = strip.Color
+		pl.Parent = strip
+	end
+
+	for i = 1, 50 do
+		local x = originX + (rng:NextNumber() - 0.5) * 60
+		local z = -rng:NextNumber() * 290
+		local y = baseY + rng:NextNumber() * 35
+		part({
+			Name = "Bit" .. i,
+			Parent = decor,
+			Size = Vector3.new(1.1, 1.1, 1.1),
+			Position = Vector3.new(x, y, z),
+			Color = Color3.fromRGB(rng:NextInteger(80, 255), rng:NextInteger(40, 200), 255),
+			Material = M.Glow,
+			CanCollide = false,
+			Transparency = 0.25,
+			CastShadow = false,
+		})
+	end
+end
+
+function TerrainGenerator:_lobby(parent: Instance)
+	local decor = Instance.new("Folder")
+	decor.Name = "LobbyDecor"
+	decor.Parent = parent
+	local spawn = StageConfig.LobbySpawn
+	-- Big grounded plaza
+	part({
+		Name = "LobbyGround",
+		Parent = decor,
+		Size = Vector3.new(80, 16, 80),
+		Position = spawn + Vector3.new(0, -10, 0),
+		Color = C.Ground,
+		Material = M.Ground,
+		CanCollide = true,
+	})
+	-- Aura pillars
+	for i = 0, 7 do
+		local ang = (i / 8) * math.pi * 2
+		local x = spawn.X + math.cos(ang) * 28
+		local z = spawn.Z + math.sin(ang) * 28
+		part({
+			Name = "Pillar" .. i,
+			Parent = decor,
+			Size = Vector3.new(3, 20, 3),
+			Position = Vector3.new(x, spawn.Y + 6, z),
+			Color = C.Path,
+			Material = M.Metal,
+			CanCollide = false,
+		})
+		local cap = part({
+			Name = "PillarCap" .. i,
+			Parent = decor,
+			Size = Vector3.new(4, 2, 4),
+			Position = Vector3.new(x, spawn.Y + 16, z),
+			Color = C.Accent,
+			Material = M.Glow,
+			CanCollide = false,
+		})
+		local pl = Instance.new("PointLight")
+		pl.Brightness = 1.5
+		pl.Range = 22
+		pl.Color = C.Accent
+		pl.Parent = cap
+	end
+end
+
+function TerrainGenerator:Generate(_stagesRoot: Instance?): Folder
+	local root = workspace:FindFirstChild("AuraFarmTerrain")
+	if root then
+		root:Destroy()
+	end
+	root = Instance.new("Folder")
+	root.Name = "AuraFarmTerrain"
+	root.Parent = workspace
+
+	self:_voidKill(root)
+	self:_lobby(root)
+
+	for _, def in StageConfig.Stages do
+		local seed = 1000 + def.id * 97
+		local rng = Random.new(seed)
+		local room = Instance.new("Folder")
+		room.Name = "Room" .. def.id
+		room:SetAttribute("StageId", def.id)
+		room.Parent = root
+		if def.theme == "meadow" then
+			self:_meadow(room, def.originX, def.baseY, rng)
+		elseif def.theme == "canyon" then
+			self:_canyon(room, def.originX, def.baseY, rng)
+		elseif def.theme == "neon" then
+			self:_neon(room, def.originX, def.baseY, rng)
+		end
+	end
+
+	print("[TerrainGenerator] Grounded aura rooms ready")
+	return root
+end
+
+return TerrainGenerator
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="30">
+      <Properties>
+        <string name="Name">TrailService</string>
+        <string name="Source"><![CDATA[-- Applies equipped trail cosmetic to character.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local CosmeticsCatalog = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("CosmeticsCatalog"))
+
+local TrailService = {}
+
+local function clearTrails(character: Model)
+	for _, d in character:GetDescendants() do
+		if d:IsA("Trail") and d:GetAttribute("AuraFarmTrail") then
+			d:Destroy()
+		end
+		if d:IsA("Attachment") and d:GetAttribute("AuraFarmTrail") then
+			d:Destroy()
+		end
+	end
+end
+
+function TrailService.Apply(character: Model, trailId: string?)
+	if not character then
+		return
+	end
+	clearTrails(character)
+
+	local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not hrp then
+		return
+	end
+
+	local def = CosmeticsCatalog.GetTrail(trailId or "default")
+		or CosmeticsCatalog.GetTrail("default")
+	if not def then
+		return
+	end
+
+	local a0 = Instance.new("Attachment")
+	a0.Name = "AuraTrailA0"
+	a0.Position = Vector3.new(0, 0.6, 0)
+	a0:SetAttribute("AuraFarmTrail", true)
+	a0.Parent = hrp
+
+	local a1 = Instance.new("Attachment")
+	a1.Name = "AuraTrailA1"
+	a1.Position = Vector3.new(0, -0.8, 0)
+	a1:SetAttribute("AuraFarmTrail", true)
+	a1.Parent = hrp
+
+	local w = def.widthScale or 0.5
+	local trail = Instance.new("Trail")
+	trail.Name = "AuraFarmTrail"
+	trail.Attachment0 = a0
+	trail.Attachment1 = a1
+	trail.Color = ColorSequence.new(def.color, def.color2 or def.color)
+	trail.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.15),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	trail.Lifetime = def.lifetime or 0.55
+	trail.FaceCamera = true
+	trail.LightEmission = def.lightEmission or 0.5
+	trail.WidthScale = NumberSequence.new(w, w * 0.1)
+	trail:SetAttribute("AuraFarmTrail", true)
+	trail.Parent = hrp
+end
+
+return TrailService
+]]></string>
+      </Properties>
+    </Item>
+    <Item class="ModuleScript" referent="31">
+      <Properties>
+        <string name="Name">WeatherService</string>
+        <string name="Source"><![CDATA[-- Aura-farm lighting moods (stay on-brand purple void; don't fight AuraTheme).
+
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local AuraTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("AuraTheme"))
+
+local WeatherService = {}
+
+export type Mood = {
+	id: string,
+	label: string,
+	auraMult: number,
+	clockTime: number,
+	fogColor: Color3,
+	fogStart: number,
+	fogEnd: number,
+	ambient: Color3,
+	durationSec: number,
+}
+
+local C = AuraTheme.Colors
+
+local MOODS: { Mood } = {
+	{
+		id = "calm",
+		label = "Calm Void",
+		auraMult = 1,
+		clockTime = 20.5,
+		fogColor = C.Fog,
+		fogStart = 50,
+		fogEnd = 260,
+		ambient = C.Ambient,
+		durationSec = 75,
+	},
+	{
+		id = "bloom",
+		label = "Aura Bloom",
+		auraMult = 1.25,
+		clockTime = 21.2,
+		fogColor = Color3.fromRGB(70, 40, 120),
+		fogStart = 40,
+		fogEnd = 220,
+		ambient = Color3.fromRGB(90, 60, 140),
+		durationSec = 60,
+	},
+	{
+		id = "storm",
+		label = "Void Storm",
+		auraMult = 1.5,
+		clockTime = 22.0,
+		fogColor = Color3.fromRGB(30, 15, 50),
+		fogStart = 30,
+		fogEnd = 180,
+		ambient = Color3.fromRGB(50, 30, 80),
+		durationSec = 45,
+	},
+	{
+		id = "golden",
+		label = "Golden Hour",
+		auraMult = 1.1,
+		clockTime = 18.5,
+		fogColor = Color3.fromRGB(80, 50, 90),
+		fogStart = 60,
+		fogEnd = 300,
+		ambient = Color3.fromRGB(100, 70, 110),
+		durationSec = 70,
+	},
+}
+
+local current: Mood = MOODS[1]
+local started = false
+local index = 1
+
+local function apply(mood: Mood, instant: boolean?)
+	current = mood
+	local info = if instant then TweenInfo.new(0) else TweenInfo.new(2.5, Enum.EasingStyle.Sine)
+	TweenService:Create(Lighting, info, {
+		ClockTime = mood.clockTime,
+		FogColor = mood.fogColor,
+		FogStart = mood.fogStart,
+		FogEnd = mood.fogEnd,
+		Ambient = mood.ambient,
+		OutdoorAmbient = mood.ambient:Lerp(Color3.new(1, 1, 1), 0.15),
+	}):Play()
+end
+
+function WeatherService.GetAuraMultiplier(): number
+	return current.auraMult
+end
+
+function WeatherService.GetMood(): Mood
+	return current
+end
+
+function WeatherService.Start(onChanged: ((Mood) -> ())?)
+	if started then
+		return
+	end
+	started = true
+	AuraTheme.EnsurePostFx(Lighting)
+	apply(MOODS[1], true)
+	if onChanged then
+		onChanged(current)
+	end
+	task.spawn(function()
+		while true do
+			task.wait(current.durationSec)
+			index = (index % #MOODS) + 1
+			apply(MOODS[index], false)
+			if onChanged then
+				onChanged(current)
+			end
+		end
+	end)
+end
+
+return WeatherService
+]]></string>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="SoundService" referent="32">
+    <Properties>
+      <string name="Name">SoundService</string>
+      <bool name="RespectFilteringEnabled">true</bool>
+    </Properties>
+  </Item>
+  <Item class="StarterPlayer" referent="33">
+    <Properties>
+      <string name="Name">StarterPlayer</string>
+    </Properties>
+    <Item class="StarterPlayerScripts" referent="34">
+      <Properties>
+        <string name="Name">StarterPlayerScripts</string>
+      </Properties>
+      <Item class="ModuleScript" referent="35">
+        <Properties>
+          <string name="Name">AnimationSystem</string>
+          <string name="Source"><![CDATA[-- Locomotion layer that REPLACES the default Animate LocalScript behavior
+-- so run/walk look correct and don't fight stock animate.
+
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local AnimationConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("AnimationConfig"))
+
+local AnimationSystem = {}
+AnimationSystem.__index = AnimationSystem
+
+local function loadTrack(animator: Animator, id: string, priority: Enum.AnimationPriority, looped: boolean): AnimationTrack?
+	local anim = Instance.new("Animation")
+	anim.AnimationId = id
+	local ok, track = pcall(function()
+		return animator:LoadAnimation(anim)
+	end)
+	if not ok or not track then
+		warn("[AnimationSystem] Failed to load", id, track)
+		return nil
+	end
+	track.Priority = priority
+	track.Looped = looped
+	return track
+end
+
+function AnimationSystem.new(character: Model, humanoid: Humanoid, hrp: BasePart)
+	local self = setmetatable({}, AnimationSystem)
+	self.character = character
+	self.humanoid = humanoid
+	self.hrp = hrp
+	self._destroyed = false
+	self._tracks = {} :: { [string]: AnimationTrack }
+	self._current = nil :: string?
+	self._emoteTrack = nil :: AnimationTrack?
+
+	-- Mute default Animate so we own locomotion
+	local animate = character:FindFirstChild("Animate")
+	if animate and animate:IsA("LocalScript") then
+		animate.Disabled = true
+	elseif animate then
+		-- ModuleScript / Script variants
+		pcall(function()
+			(animate :: any).Disabled = true
+		end)
+	end
+	-- Stop any leftover tracks
+	for _, t in humanoid:GetPlayingAnimationTracks() do
+		t:Stop(0)
+	end
+
+	local animator = humanoid:FindFirstChildOfClass("Animator")
+	if not animator then
+		animator = Instance.new("Animator")
+		animator.Parent = humanoid
+	end
+	self.animator = animator
+
+	local ids = AnimationConfig.Ids
+	local pri = AnimationConfig.Priorities
+	self._tracks.Idle = loadTrack(animator, ids.Idle, pri.Idle, true)
+	self._tracks.Walk = loadTrack(animator, ids.Walk, pri.Walk, true)
+	self._tracks.Run = loadTrack(animator, ids.Run, pri.Run, true)
+	self._tracks.Jump = loadTrack(animator, ids.Jump, pri.Jump, false)
+	self._tracks.Fall = loadTrack(animator, ids.Fall, pri.Fall, true)
+
+	self._emotes = {}
+	for _, name in AnimationConfig.EmoteList do
+		local id = ids[name]
+		if id then
+			self._emotes[name] = loadTrack(animator, id, pri.Emote, false)
+		end
+	end
+
+	-- Start idle
+	self:_play("Idle", 0.2)
+
+	self._stateConn = humanoid.StateChanged:Connect(function(_, new)
+		if self._destroyed then
+			return
+		end
+		if new == Enum.HumanoidStateType.Jumping then
+			self:_play("Jump", 0.05)
+		elseif new == Enum.HumanoidStateType.Freefall then
+			self:_play("Fall", 0.1)
+		end
+	end)
+
+	self._hb = RunService.RenderStepped:Connect(function()
+		if self._destroyed then
+			return
+		end
+		self:_tick()
+	end)
+
+	return self
+end
+
+function AnimationSystem:_play(name: string, fade: number?)
+	if self._current == name and name ~= "Jump" then
+		return
+	end
+	local track = self._tracks[name]
+	if not track then
+		return
+	end
+	local fadeTime = fade or AnimationConfig.FadeTime
+	if self._current and self._tracks[self._current] and self._current ~= name then
+		self._tracks[self._current]:Stop(fadeTime)
+	end
+	track:Play(fadeTime)
+	self._current = name
+end
+
+function AnimationSystem:_tick()
+	if self._emoteTrack and self._emoteTrack.IsPlaying then
+		return
+	end
+	local hum = self.humanoid
+	local state = hum:GetState()
+	if state == Enum.HumanoidStateType.Jumping then
+		return
+	end
+	if state == Enum.HumanoidStateType.Freefall then
+		if self._current ~= "Fall" then
+			self:_play("Fall", 0.08)
+		end
+		return
+	end
+	if state == Enum.HumanoidStateType.Climbing then
+		return
+	end
+
+	local speed = hum.MoveDirection.Magnitude * hum.WalkSpeed
+	-- also use assembly velocity for slope/air remnants
+	local hrp = self.hrp
+	if hrp then
+		local v = hrp.AssemblyLinearVelocity
+		local planar = Vector3.new(v.X, 0, v.Z).Magnitude
+		speed = math.max(speed, planar)
+	end
+
+	if speed < AnimationConfig.WalkSpeedThreshold then
+		self:_play("Idle", 0.15)
+	elseif hum.WalkSpeed >= AnimationConfig.RunSpeedThreshold or speed >= AnimationConfig.RunSpeedThreshold then
+		self:_play("Run", 0.1)
+		local run = self._tracks.Run
+		if run then
+			run:AdjustSpeed(math.clamp(speed / 20, 0.85, 1.35))
+		end
+	else
+		self:_play("Walk", 0.1)
+		local walk = self._tracks.Walk
+		if walk then
+			walk:AdjustSpeed(math.clamp(speed / 12, 0.7, 1.4))
+		end
+	end
+end
+
+function AnimationSystem:PlayEmote(name: string): boolean
+	if name == "Victory" then
+		name = "Cheer"
+	end
+	local track = self._emotes[name]
+	if not track then
+		return false
+	end
+	if self._emoteTrack and self._emoteTrack.IsPlaying then
+		self._emoteTrack:Stop(0.1)
+	end
+	-- pause locomotion
+	if self._current and self._tracks[self._current] then
+		self._tracks[self._current]:Stop(0.1)
+	end
+	self._current = nil
+	track:Play(0.1)
+	self._emoteTrack = track
+	track.Stopped:Once(function()
+		if self._emoteTrack == track then
+			self._emoteTrack = nil
+		end
+	end)
+	return true
+end
+
+function AnimationSystem:PlayNextEmote(): string?
+	self._emoteIndex = (self._emoteIndex or 0) + 1
+	local list = AnimationConfig.EmoteList
+	local name = list[((self._emoteIndex - 1) % #list) + 1]
+	if self:PlayEmote(name) then
+		return name
+	end
+	return nil
+end
+
+function AnimationSystem:Destroy()
+	self._destroyed = true
+	if self._hb then
+		self._hb:Disconnect()
+	end
+	if self._stateConn then
+		self._stateConn:Disconnect()
+	end
+	for _, t in self._tracks do
+		t:Stop(0)
+	end
+	self._tracks = {}
+end
+
+return AnimationSystem
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="36">
+        <Properties>
+          <string name="Name">CosmeticsSystem</string>
+          <string name="Source"><![CDATA[-- Client aura body FX + emotes. Server owns shop trails (TrailService).
+
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local CosmeticsCatalog = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("CosmeticsCatalog"))
+local AuraTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("AuraTheme"))
+
+local CosmeticsSystem = {}
+CosmeticsSystem.__index = CosmeticsSystem
+
+local function makeAuraAttachment(hrp: BasePart): ParticleEmitter
+	local att = hrp:FindFirstChild("AuraFarmAtt")
+	if not att then
+		att = Instance.new("Attachment")
+		att.Name = "AuraFarmAtt"
+		att.Parent = hrp
+	end
+	local pe = att:FindFirstChild("AuraParticles") :: ParticleEmitter?
+	if pe then
+		return pe
+	end
+	pe = Instance.new("ParticleEmitter")
+	pe.Name = "AuraParticles"
+	pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	pe.Rate = 18
+	pe.Lifetime = NumberRange.new(0.5, 1.0)
+	pe.Speed = NumberRange.new(0.4, 1.6)
+	pe.SpreadAngle = Vector2.new(40, 40)
+	pe.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.35),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	pe.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.2),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	pe.Color = ColorSequence.new(AuraTheme.Colors.Accent, AuraTheme.Colors.AccentHot)
+	pe.LightEmission = 0.7
+	pe.LockedToPart = false
+	pe.Parent = att
+	return pe
+end
+
+function CosmeticsSystem.new(character: Model, humanoid: Humanoid, hrp: BasePart)
+	local self = setmetatable({}, CosmeticsSystem)
+	self.character = character
+	self.humanoid = humanoid
+	self.hrp = hrp
+	self.emitter = makeAuraAttachment(hrp)
+	self._trailId = "default"
+	self._destroyed = false
+
+	-- Soft aura point light
+	local light = hrp:FindFirstChild("AuraBodyLight")
+	if not light then
+		light = Instance.new("PointLight")
+		light.Name = "AuraBodyLight"
+		light.Parent = hrp
+	end
+	light.Brightness = 0.6
+	light.Range = 10
+	light.Color = AuraTheme.Colors.Accent
+	self.light = light
+
+	return self
+end
+
+function CosmeticsSystem:SetTrailId(trailId: string?)
+	self._trailId = trailId or "default"
+	local def = CosmeticsCatalog.GetTrail(self._trailId) or CosmeticsCatalog.GetTrail("default")
+	if def and self.emitter then
+		self.emitter.Color = ColorSequence.new(def.color, def.color2 or def.color)
+	end
+	if def and self.light then
+		self.light.Color = def.color
+	end
+end
+
+function CosmeticsSystem:SetEnabled(on: boolean)
+	if self.emitter then
+		self.emitter.Enabled = on
+	end
+	if self.light then
+		self.light.Enabled = on
+	end
+end
+
+function CosmeticsSystem:PulseTrailColor(trailId: string?)
+	local def = CosmeticsCatalog.GetTrail(trailId or self._trailId)
+	if not def or not self.hrp then
+		return
+	end
+	local highlight = self.character:FindFirstChild("AuraPulse")
+	if not highlight then
+		highlight = Instance.new("Highlight")
+		highlight.Name = "AuraPulse"
+		highlight.FillTransparency = 0.7
+		highlight.OutlineTransparency = 0.3
+		highlight.Parent = self.character
+	end
+	highlight.OutlineColor = def.color
+	highlight.FillColor = def.color
+	highlight.Enabled = true
+	task.delay(0.45, function()
+		if highlight and highlight.Parent then
+			highlight.Enabled = false
+		end
+	end)
+end
+
+-- Cycle through catalog trails for local aura color (Y key in PlayerClient).
+function CosmeticsSystem:CycleAura(): string
+	local trails = CosmeticsCatalog.All()
+	local list = {}
+	for _, def in ipairs(trails) do
+		if type(def) == "table" and def.id then
+			table.insert(list, def.id)
+		end
+	end
+	if #list == 0 then
+		return self._trailId or "default"
+	end
+	local cur = self._trailId or "default"
+	local idx = 1
+	for i, id in ipairs(list) do
+		if id == cur then
+			idx = i
+			break
+		end
+	end
+	local nextId = list[(idx % #list) + 1]
+	self:SetTrailId(nextId)
+	self:PulseTrailColor(nextId)
+	return nextId
+end
+
+function CosmeticsSystem:Destroy()
+	self._destroyed = true
+	if self.emitter then
+		self.emitter.Enabled = false
+	end
+end
+
+return CosmeticsSystem
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="37">
+        <Properties>
+          <string name="Name">GraphicsSystem</string>
+          <string name="Source"><![CDATA[-- Aura-farm post FX + client focus fog (stage rooms).
+-- Server owns ClockTime; client adds bloom/CC and tightens fog for focus.
+
+local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local AuraTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("AuraTheme"))
+
+local GraphicsSystem = {}
+GraphicsSystem.__index = GraphicsSystem
+
+local PRESETS = {
+	{
+		name = "Aura",
+		bloom = 0.55,
+		bloomSize = 28,
+		threshold = 0.85,
+		sat = 0.22,
+		contrast = 0.12,
+		tint = Color3.fromRGB(230, 210, 255),
+		fogEnd = 240,
+	},
+	{
+		name = "Crisp",
+		bloom = 0.25,
+		bloomSize = 18,
+		threshold = 1.0,
+		sat = 0.05,
+		contrast = 0.18,
+		tint = Color3.fromRGB(255, 255, 255),
+		fogEnd = 320,
+	},
+	{
+		name = "Dream",
+		bloom = 0.9,
+		bloomSize = 40,
+		threshold = 0.7,
+		sat = 0.35,
+		contrast = 0.08,
+		tint = Color3.fromRGB(220, 180, 255),
+		fogEnd = 180,
+	},
+	{
+		name = "Perf",
+		bloom = 0.1,
+		bloomSize = 12,
+		threshold = 1.2,
+		sat = 0,
+		contrast = 0.05,
+		tint = Color3.fromRGB(255, 255, 255),
+		fogEnd = 400,
+	},
+}
+
+function GraphicsSystem.new()
+	local self = setmetatable({}, GraphicsSystem)
+	self._index = 1
+	self._reduceFx = false
+
+	AuraTheme.ApplyLighting(Lighting)
+	AuraTheme.EnsurePostFx(Lighting)
+
+	self.bloom = Lighting:FindFirstChild("AuraBloom") :: BloomEffect
+	self.cc = Lighting:FindFirstChild("AuraCC") :: ColorCorrectionEffect
+
+	self:ApplyPreset(1)
+
+	-- Client-side focus: if FocusedStage attribute changes, tighten fog
+	local player = Players.LocalPlayer
+	self._attr = player:GetAttributeChangedSignal("FocusedStage"):Connect(function()
+		self:_applyFocusFog()
+	end)
+	self:_applyFocusFog()
+
+	return self
+end
+
+function GraphicsSystem:_applyFocusFog()
+	local player = Players.LocalPlayer
+	local sid = player:GetAttribute("FocusedStage")
+	local preset = PRESETS[self._index] or PRESETS[1]
+	local fogEnd = preset.fogEnd
+	if typeof(sid) == "number" and sid > 0 then
+		fogEnd = math.min(fogEnd, AuraTheme.Room.FocusFogEnd)
+	end
+	TweenService:Create(Lighting, TweenInfo.new(0.6), {
+		FogEnd = fogEnd,
+		FogStart = 50,
+	}):Play()
+end
+
+function GraphicsSystem:ApplyPreset(index: number)
+	self._index = ((index - 1) % #PRESETS) + 1
+	local p = PRESETS[self._index]
+	if self.bloom then
+		self.bloom.Intensity = if self._reduceFx then p.bloom * 0.3 else p.bloom
+		self.bloom.Size = p.bloomSize
+		self.bloom.Threshold = p.threshold
+	end
+	if self.cc then
+		self.cc.Saturation = if self._reduceFx then 0 else p.sat
+		self.cc.Contrast = p.contrast
+		self.cc.TintColor = p.tint
+	end
+	self:_applyFocusFog()
+	return p.name
+end
+
+function GraphicsSystem:Cycle(): string
+	return self:ApplyPreset(self._index + 1)
+end
+
+function GraphicsSystem:SetReduceFx(on: boolean)
+	self._reduceFx = on
+	self:ApplyPreset(self._index)
+end
+
+function GraphicsSystem:SetReduced(on: boolean)
+	self:SetReduceFx(on)
+end
+
+function GraphicsSystem:Flash(color: Color3, duration: number?)
+	local d = duration or 0.2
+	if not self.cc then
+		return
+	end
+	local old = self.cc.TintColor
+	self.cc.TintColor = color
+	self.cc.Brightness = 0.25
+	task.delay(d, function()
+		if self.cc then
+			self.cc.Brightness = 0.02
+			self.cc.TintColor = old
+		end
+	end)
+end
+
+function GraphicsSystem:Destroy()
+	if self._attr then
+		self._attr:Disconnect()
+	end
+end
+
+return GraphicsSystem
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="LocalScript" referent="38">
+        <Properties>
+          <string name="Name">LoadingScreen</string>
+          <string name="Source"><![CDATA[-- First-join loading overlay until stage + remotes are ready.
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local ContentProvider = game:GetService("ContentProvider")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "AuraFarmLoading"
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 1000
+gui.ResetOnSpawn = false
+gui.Parent = playerGui
+
+local bg = Instance.new("Frame")
+bg.Name = "BG"
+bg.Size = UDim2.fromScale(1, 1)
+bg.BackgroundColor3 = Color3.fromRGB(10, 10, 18)
+bg.BorderSizePixel = 0
+bg.Parent = gui
+
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.AnchorPoint = Vector2.new(0.5, 0.5)
+title.Position = UDim2.fromScale(0.5, 0.42)
+title.Size = UDim2.fromOffset(480, 56)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 36
+title.TextColor3 = Color3.fromRGB(200, 160, 255)
+title.Text = "Aura Farm Obby"
+title.Parent = bg
+
+local sub = Instance.new("TextLabel")
+sub.Name = "Sub"
+sub.AnchorPoint = Vector2.new(0.5, 0)
+sub.Position = UDim2.new(0.5, 0, 0.42, 36)
+sub.Size = UDim2.fromOffset(480, 28)
+sub.BackgroundTransparency = 1
+sub.Font = Enum.Font.Gotham
+sub.TextSize = 16
+sub.TextColor3 = Color3.fromRGB(180, 180, 200)
+sub.Text = "Loading stage…"
+sub.Parent = bg
+
+local barBG = Instance.new("Frame")
+barBG.Name = "BarBG"
+barBG.AnchorPoint = Vector2.new(0.5, 0)
+barBG.Position = UDim2.new(0.5, 0, 0.42, 80)
+barBG.Size = UDim2.fromOffset(280, 8)
+barBG.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+barBG.BorderSizePixel = 0
+barBG.Parent = bg
+local barCorner = Instance.new("UICorner")
+barCorner.CornerRadius = UDim.new(1, 0)
+barCorner.Parent = barBG
+
+local bar = Instance.new("Frame")
+bar.Name = "Bar"
+bar.Size = UDim2.fromScale(0.05, 1)
+bar.BackgroundColor3 = Color3.fromRGB(160, 100, 255)
+bar.BorderSizePixel = 0
+bar.Parent = barBG
+local barFillCorner = Instance.new("UICorner")
+barFillCorner.CornerRadius = UDim.new(1, 0)
+barFillCorner.Parent = bar
+
+local function setProgress(p: number, label: string?)
+	p = math.clamp(p, 0, 1)
+	bar.Size = UDim2.fromScale(p, 1)
+	if label then
+		sub.Text = label
+	end
+end
+
+task.spawn(function()
+	setProgress(0.1, "Connecting…")
+	local shared = ReplicatedStorage:WaitForChild("Shared", 15)
+	setProgress(0.35, "Shared modules…")
+	if shared then
+		pcall(function()
+			ContentProvider:PreloadAsync({ shared })
+		end)
+	end
+	setProgress(0.55, "Remotes…")
+	ReplicatedStorage:WaitForChild("ObbyRemotes", 20)
+	setProgress(0.75, "Stage…")
+	-- Stage lives under Workspace once server builds it
+	local deadline = os.clock() + 12
+	while os.clock() < deadline do
+		local stage = workspace:FindFirstChild("Stage1") or workspace:FindFirstChild("ObbyStage")
+		if stage then
+			break
+		end
+		-- also accept any folder with Finish attribute parts
+		local found = false
+		for _, c in workspace:GetChildren() do
+			if c:IsA("Folder") and c:FindFirstChildWhichIsA("BasePart", true) then
+				found = true
+				break
+			end
+		end
+		if found then
+			break
+		end
+		task.wait(0.15)
+	end
+	setProgress(0.92, "Almost ready…")
+	if not player.Character then
+		player.CharacterAdded:Wait()
+	end
+	local char = player.Character
+	if char then
+		char:WaitForChild("Humanoid", 8)
+	end
+	setProgress(1, "Go!")
+	task.wait(0.25)
+
+	local tw = TweenService:Create(bg, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+		BackgroundTransparency = 1,
+	})
+	title.TextTransparency = 0
+	TweenService:Create(title, TweenInfo.new(0.4), { TextTransparency = 1 }):Play()
+	TweenService:Create(sub, TweenInfo.new(0.4), { TextTransparency = 1 }):Play()
+	TweenService:Create(barBG, TweenInfo.new(0.4), { BackgroundTransparency = 1 }):Play()
+	TweenService:Create(bar, TweenInfo.new(0.4), { BackgroundTransparency = 1 }):Play()
+	tw:Play()
+	tw.Completed:Wait()
+	gui:Destroy()
+end)
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="LocalScript" referent="39">
+        <Properties>
+          <string name="Name">MobileControls</string>
+          <string name="Source"><![CDATA[-- On-screen Sprint / Slide for touch devices (desktop still uses keyboard).
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
+
+if not UserInputService.TouchEnabled then
+	return
+end
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Find MovementSystem via PlayerClient sibling pattern is awkward;
+-- instead fire VirtualInput-like flags on the local player attributes
+-- that MovementSystem already watches, OR simulate key holds via attributes.
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "AuraFarmMobile"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 50
+gui.Parent = playerGui
+
+local function makeBtn(name: string, text: string, pos: UDim2, size: UDim2): TextButton
+	local b = Instance.new("TextButton")
+	b.Name = name
+	b.Text = text
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 18
+	b.TextColor3 = Color3.new(1, 1, 1)
+	b.BackgroundColor3 = Color3.fromRGB(30, 30, 48)
+	b.BackgroundTransparency = 0.25
+	b.Size = size
+	b.Position = pos
+	b.AnchorPoint = Vector2.new(0.5, 0.5)
+	b.Parent = gui
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 12)
+	c.Parent = b
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(160, 100, 255)
+	stroke.Thickness = 1.5
+	stroke.Transparency = 0.4
+	stroke.Parent = b
+	return b
+end
+
+local sprint = makeBtn("Sprint", "SPRINT", UDim2.new(1, -90, 1, -150), UDim2.fromOffset(110, 56))
+local slide = makeBtn("Slide", "SLIDE", UDim2.new(1, -90, 1, -80), UDim2.fromOffset(110, 56))
+local crouch = makeBtn("Crouch", "CROUCH", UDim2.new(1, -210, 1, -80), UDim2.fromOffset(110, 56))
+
+-- Attributes consumed by MovementSystem
+local function setFlag(key: string, on: boolean)
+	player:SetAttribute(key, on)
+end
+
+sprint.MouseButton1Down:Connect(function()
+	setFlag("AF_Sprint", true)
+end)
+sprint.MouseButton1Up:Connect(function()
+	setFlag("AF_Sprint", false)
+end)
+sprint.MouseLeave:Connect(function()
+	setFlag("AF_Sprint", false)
+end)
+
+crouch.MouseButton1Down:Connect(function()
+	setFlag("AF_Crouch", true)
+end)
+crouch.MouseButton1Up:Connect(function()
+	setFlag("AF_Crouch", false)
+end)
+crouch.MouseLeave:Connect(function()
+	setFlag("AF_Crouch", false)
+end)
+
+slide.MouseButton1Click:Connect(function()
+	setFlag("AF_SlidePulse", true)
+	task.defer(function()
+		setFlag("AF_SlidePulse", false)
+	end)
+end)
+
+pcall(function()
+	StarterGui:SetCore("SendNotification", {
+		Title = "Touch controls",
+		Text = "Sprint / Crouch / Slide on the right",
+		Duration = 3,
+	})
+end)
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="40">
+        <Properties>
+          <string name="Name">MovementSystem</string>
+          <string name="Source"><![CDATA[-- Parkour movement layer: sprint, crouch, slide.
+-- Works WITH default Humanoid movement (does not reimplement WASD).
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local MovementConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("MovementConfig"))
+
+local MovementSystem = {}
+MovementSystem.__index = MovementSystem
+
+function MovementSystem.new(character: Model, humanoid: Humanoid, rootPart: BasePart)
+	local self = setmetatable({}, MovementSystem)
+	self.character = character
+	self.humanoid = humanoid
+	self.rootPart = rootPart
+	self._destroyed = false
+
+	self.isSprinting = false
+	self.isCrouching = false
+	self.isSliding = false
+	self.lastSlide = 0
+	self.baseHip = humanoid.HipHeight
+	self.baseJump = humanoid.JumpPower > 0 and humanoid.JumpPower or humanoid.JumpHeight
+	self.usingJumpPower = humanoid.UseJumpPower
+
+	humanoid.WalkSpeed = MovementConfig.BaseWalkSpeed
+	if humanoid.UseJumpPower then
+		humanoid.JumpPower = MovementConfig.Jump.Power
+	else
+		-- approximate conversion
+		humanoid.JumpHeight = math.clamp(MovementConfig.Jump.Power / 7.5, 5, 12)
+	end
+
+	self.camera = workspace.CurrentCamera
+	self:_applyFov(MovementConfig.Camera.NormalFOV)
+
+	self._began = UserInputService.InputBegan:Connect(function(input, gp)
+		if gp or self._destroyed then
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.RightShift then
+			self:SetSprint(true)
+		elseif input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+			self:SetCrouch(true)
+		elseif input.KeyCode == Enum.KeyCode.C then
+			self:TrySlide()
+		end
+	end)
+
+	self._ended = UserInputService.InputEnded:Connect(function(input)
+		if self._destroyed then
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.RightShift then
+			self:SetSprint(false)
+		elseif input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+			self:SetCrouch(false)
+		end
+	end)
+
+	-- Mobile / on-screen controls (attributes set by MobileControls)
+	local player = game:GetService("Players").LocalPlayer
+	self._attr = player.AttributeChanged:Connect(function(name)
+		if self._destroyed then
+			return
+		end
+		if name == "AF_Sprint" then
+			self:SetSprint(player:GetAttribute("AF_Sprint") == true)
+		elseif name == "AF_Crouch" then
+			self:SetCrouch(player:GetAttribute("AF_Crouch") == true)
+		elseif name == "AF_SlidePulse" and player:GetAttribute("AF_SlidePulse") == true then
+			self:TrySlide()
+		end
+	end)
+
+	self._hb = RunService.Heartbeat:Connect(function()
+		self:_tick()
+	end)
+
+	humanoid.Died:Connect(function()
+		self:Destroy()
+	end)
+
+	return self
+end
+
+function MovementSystem:_applyFov(fov: number)
+	if not self.camera then
+		return
+	end
+	TweenService:Create(
+		self.camera,
+		TweenInfo.new(MovementConfig.Camera.TweenSpeed, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+		{ FieldOfView = fov }
+	):Play()
+end
+
+function MovementSystem:_refreshSpeed()
+	if self._destroyed or not self.humanoid then
+		return
+	end
+	if self.isSliding then
+		return
+	end
+	if self.isCrouching then
+		self.humanoid.WalkSpeed = MovementConfig.CrouchWalkSpeed
+		self:_applyFov(MovementConfig.Camera.NormalFOV - 4)
+	elseif self.isSprinting then
+		self.humanoid.WalkSpeed = MovementConfig.BaseWalkSpeed * MovementConfig.SprintMultiplier
+		self:_applyFov(MovementConfig.Camera.SprintFOV)
+	else
+		self.humanoid.WalkSpeed = MovementConfig.BaseWalkSpeed
+		self:_applyFov(MovementConfig.Camera.NormalFOV)
+	end
+end
+
+function MovementSystem:SetSprint(on: boolean)
+	if self.isCrouching and on then
+		return
+	end
+	self.isSprinting = on
+	self:_refreshSpeed()
+end
+
+function MovementSystem:SetCrouch(on: boolean)
+	if not MovementConfig.Crouch.Enabled then
+		return
+	end
+	if self.isSliding then
+		return
+	end
+	self.isCrouching = on
+	if on then
+		self.isSprinting = false
+		self.humanoid.HipHeight = self.baseHip + MovementConfig.Crouch.HipHeightDelta
+	else
+		self.humanoid.HipHeight = self.baseHip
+	end
+	self:_refreshSpeed()
+end
+
+function MovementSystem:TrySlide()
+	if not MovementConfig.Sliding.Enabled or self.isSliding or self._destroyed then
+		return false
+	end
+	local now = os.clock()
+	if now - self.lastSlide < MovementConfig.Sliding.Cooldown then
+		return false
+	end
+
+	local hrp = self.rootPart
+	local vel = hrp.AssemblyLinearVelocity
+	local flat = Vector3.new(vel.X, 0, vel.Z)
+	if flat.Magnitude < MovementConfig.Sliding.MinForwardSpeed and self.humanoid.MoveDirection.Magnitude < 0.2 then
+		return false
+	end
+
+	self.isSliding = true
+	self.lastSlide = now
+	self.isCrouching = false
+	self.humanoid.HipHeight = self.baseHip + MovementConfig.Crouch.HipHeightDelta
+	self:_applyFov(MovementConfig.Camera.SlideFOV)
+
+	local dir = flat.Magnitude > 1 and flat.Unit or self.humanoid.MoveDirection
+	if dir.Magnitude < 0.1 then
+		dir = hrp.CFrame.LookVector
+	end
+	dir = Vector3.new(dir.X, 0, dir.Z).Unit
+	hrp.AssemblyLinearVelocity = Vector3.new(
+		dir.X * (flat.Magnitude + MovementConfig.Sliding.SpeedBoost),
+		vel.Y,
+		dir.Z * (flat.Magnitude + MovementConfig.Sliding.SpeedBoost)
+	)
+
+	task.delay(MovementConfig.Sliding.Duration, function()
+		if self._destroyed then
+			return
+		end
+		self.isSliding = false
+		if not self.isCrouching then
+			self.humanoid.HipHeight = self.baseHip
+		end
+		self:_refreshSpeed()
+	end)
+
+	return true
+end
+
+function MovementSystem:_tick()
+	if self._destroyed or not self.character.Parent then
+		return
+	end
+	-- Keep sprint speed applied if shift held through air
+	if self.isSprinting and not self.isCrouching and not self.isSliding then
+		self.humanoid.WalkSpeed = MovementConfig.BaseWalkSpeed * MovementConfig.SprintMultiplier
+	end
+end
+
+function MovementSystem:Destroy()
+	if self._destroyed then
+		return
+	end
+	self._destroyed = true
+	if self._began then
+		self._began:Disconnect()
+	end
+	if self._ended then
+		self._ended:Disconnect()
+	end
+	if self._hb then
+		self._hb:Disconnect()
+	end
+	if self._attr then
+		self._attr:Disconnect()
+	end
+	if self.humanoid then
+		self.humanoid.WalkSpeed = MovementConfig.BaseWalkSpeed
+		self.humanoid.HipHeight = self.baseHip
+	end
+	self:_applyFov(MovementConfig.Camera.NormalFOV)
+end
+
+return MovementSystem
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="LocalScript" referent="41">
+        <Properties>
+          <string name="Name">ObbyClient</string>
+          <string name="Source"><![CDATA[-- Aura Farm Obby — client HUD
+-- tides: notifications, tutorial, settings, music, quests UI, weather banner
+-- gear-clicker: compact number format, juice feedback
+
+print("[ObbyClient] Starting")
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local Lighting = game:GetService("Lighting")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local ObbyConfig = require(Shared:WaitForChild("ObbyConfig"))
+local CosmeticsCatalog = require(Shared:WaitForChild("CosmeticsCatalog"))
+local FormatUtil = require(Shared:WaitForChild("FormatUtil"))
+local TutorialConfig = require(Shared:WaitForChild("TutorialConfig"))
+local SoundCatalog = require(Shared:WaitForChild("SoundCatalog"))
+local TimeUtil = require(Shared:WaitForChild("TimeUtil"))
+local RemotesMod = require(Shared:WaitForChild("Remotes"))
+
+local remoteFolder = RemotesMod.WaitClient(20)
+local function R(name: string): RemoteEvent
+	return remoteFolder:WaitForChild(name) :: RemoteEvent
+end
+
+local Toast = R("Toast")
+local AuraUpdate = R("AuraUpdate")
+local StatsUpdate = R("StatsUpdate")
+local FinishEv = R("Finish")
+local RestartRequest = R("RestartRequest")
+local BuyCosmetic = R("BuyCosmetic")
+local EquipCosmetic = R("EquipCosmetic")
+local CosmeticResult = R("CosmeticResult")
+local AchievementUnlocked = R("AchievementUnlocked")
+local QuestUpdate = R("QuestUpdate")
+local ClaimQuest = R("ClaimQuest")
+local QuestResult = R("QuestResult")
+local WeatherUpdate = R("WeatherUpdate")
+local LeaderboardUpdate = R("LeaderboardUpdate")
+local RequestLeaderboard = R("RequestLeaderboard")
+local OfflineReward = R("OfflineReward")
+local SettingsUpdate = R("SettingsUpdate")
+local TutorialState = R("TutorialState")
+local TutorialComplete = R("TutorialComplete")
+local PlaySound = R("PlaySound")
+local StageUpdate = R("StageUpdate")
+
+-- State
+local aura = 0
+local coins = 0
+local bestTime: number? = nil
+local stageId = 1
+local stageName = "Meadow Run"
+local stagesCleared: { number } = {}
+local equippedTrail = "default"
+local unlocked: { [string]: boolean } = { default = true }
+local runStart = os.clock()
+local finished = false
+local checkpointIndex = 0
+local settings = { music = true, sfx = true, reduceFx = false }
+local weatherLabel = "Clear Skies"
+local weatherMult = 1
+local questSnap: any = nil
+local tutorialStep = 0
+local leaderboardRows: { any } = {}
+
+local COLORS = ObbyConfig.Colors
+
+-- Root GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "AuraFarmHud"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = playerGui
+
+local function corner(parent: Instance, r: number?)
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, r or 10)
+	c.Parent = parent
+	return c
+end
+
+local function pad(parent: Instance, px: number?)
+	local p = Instance.new("UIPadding")
+	local n = px or 8
+	p.PaddingTop = UDim.new(0, n)
+	p.PaddingBottom = UDim.new(0, n)
+	p.PaddingLeft = UDim.new(0, n)
+	p.PaddingRight = UDim.new(0, n)
+	p.Parent = parent
+	return p
+end
+
+local function stroke(parent: Instance, color: Color3?, thickness: number?)
+	local s = Instance.new("UIStroke")
+	s.Color = color or Color3.fromRGB(255, 255, 255)
+	s.Thickness = thickness or 1
+	s.Transparency = 0.7
+	s.Parent = parent
+	return s
+end
+
+-- SFX / Music
+local sfxFolder = Instance.new("Folder")
+sfxFolder.Name = "AuraFarmSfx"
+sfxFolder.Parent = SoundService
+
+local music = Instance.new("Sound")
+music.Name = "AuraFarmMusic"
+music.SoundId = SoundCatalog.MusicId
+music.Volume = SoundCatalog.MusicVolume
+music.Looped = true
+music.Parent = SoundService
+
+local function playSfx(key: string)
+	if settings.sfx == false then
+		return
+	end
+	local id = SoundCatalog.Ids[key]
+	if not id then
+		return
+	end
+	local s = Instance.new("Sound")
+	s.SoundId = id
+	s.Volume = SoundCatalog.SfxVolume
+	s.Parent = sfxFolder
+	s:Play()
+	s.Ended:Connect(function()
+		s:Destroy()
+	end)
+	task.delay(4, function()
+		if s.Parent then
+			s:Destroy()
+		end
+	end)
+end
+
+local function refreshMusic()
+	if settings.music then
+		if not music.IsPlaying then
+			music:Play()
+		end
+	else
+		music:Stop()
+	end
+end
+
+task.defer(function()
+	task.wait(1)
+	refreshMusic()
+end)
+
+-- Top bar
+local top = Instance.new("Frame")
+top.Name = "TopBar"
+top.AnchorPoint = Vector2.new(0.5, 0)
+top.Position = UDim2.new(0.5, 0, 0, 12)
+top.Size = UDim2.new(0, 520, 0, 56)
+top.BackgroundColor3 = COLORS.UI
+top.BackgroundTransparency = 0.15
+top.Parent = gui
+corner(top, 14)
+stroke(top, COLORS.Aura, 1.5)
+pad(top, 10)
+
+local topLayout = Instance.new("UIListLayout")
+topLayout.FillDirection = Enum.FillDirection.Horizontal
+topLayout.Padding = UDim.new(0, 10)
+topLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+topLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+topLayout.Parent = top
+
+local function makeStat(name: string, color: Color3, width: number?): TextLabel
+	local t = Instance.new("TextLabel")
+	t.Name = name
+	t.BackgroundTransparency = 1
+	t.Size = UDim2.new(0, width or 110, 1, 0)
+	t.Font = Enum.Font.GothamBold
+	t.TextSize = 17
+	t.TextColor3 = color
+	t.Text = name .. ": 0"
+	t.Parent = top
+	return t
+end
+
+local auraLabel = makeStat("Aura", COLORS.Aura, 95)
+local coinLabel = makeStat("Coins", COLORS.Coin, 90)
+local timeLabel = makeStat("Time", Color3.fromRGB(220, 230, 255), 105)
+local stageLabel = makeStat("Stage", Color3.fromRGB(180, 255, 220), 120)
+local streakLabel = makeStat("Streak", Color3.fromRGB(255, 160, 100), 90)
+
+local cpLabel = Instance.new("TextLabel")
+cpLabel.Name = "Checkpoint"
+cpLabel.Position = UDim2.new(0, 16, 0, 76)
+cpLabel.Size = UDim2.new(0, 100, 0, 28)
+cpLabel.BackgroundColor3 = COLORS.UI
+cpLabel.BackgroundTransparency = 0.2
+cpLabel.Font = Enum.Font.GothamMedium
+cpLabel.TextSize = 14
+cpLabel.TextColor3 = COLORS.Checkpoint
+cpLabel.Text = "CP 0"
+cpLabel.Parent = gui
+corner(cpLabel, 8)
+
+local weatherChip = Instance.new("TextLabel")
+weatherChip.Name = "Weather"
+weatherChip.Position = UDim2.new(0, 124, 0, 76)
+weatherChip.Size = UDim2.new(0, 200, 0, 28)
+weatherChip.BackgroundColor3 = COLORS.UI
+weatherChip.BackgroundTransparency = 0.2
+weatherChip.Font = Enum.Font.GothamMedium
+weatherChip.TextSize = 13
+weatherChip.TextColor3 = Color3.fromRGB(180, 210, 255)
+weatherChip.Text = "Weather: Clear"
+weatherChip.Parent = gui
+corner(weatherChip, 8)
+
+-- Buttons
+local btnCol = Instance.new("Frame")
+btnCol.Name = "Buttons"
+btnCol.AnchorPoint = Vector2.new(1, 0.5)
+btnCol.Position = UDim2.new(1, -16, 0.5, 0)
+btnCol.Size = UDim2.new(0, 120, 0, 280)
+btnCol.BackgroundTransparency = 1
+btnCol.Parent = gui
+
+local btnLayout = Instance.new("UIListLayout")
+btnLayout.Padding = UDim.new(0, 8)
+btnLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+btnLayout.Parent = btnCol
+
+local function makeButton(text: string, color: Color3): TextButton
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(1, 0, 0, 40)
+	b.BackgroundColor3 = color
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 15
+	b.TextColor3 = Color3.new(1, 1, 1)
+	b.Text = text
+	b.AutoButtonColor = true
+	b.Parent = btnCol
+	corner(b, 12)
+	stroke(b, Color3.new(1, 1, 1), 1)
+	return b
+end
+
+local shopBtn = makeButton("Shop", Color3.fromRGB(120, 70, 200))
+local questBtn = makeButton("Quests", Color3.fromRGB(70, 140, 200))
+local boardBtn = makeButton("Times", Color3.fromRGB(50, 120, 100))
+local settingsBtn = makeButton("Settings", Color3.fromRGB(80, 80, 100))
+local restartBtn = makeButton("Restart", Color3.fromRGB(70, 90, 140))
+
+-- Toasts
+local toastFrame = Instance.new("Frame")
+toastFrame.Name = "Toasts"
+toastFrame.AnchorPoint = Vector2.new(0.5, 1)
+toastFrame.Position = UDim2.new(0.5, 0, 1, -24)
+toastFrame.Size = UDim2.new(0, 380, 0, 220)
+toastFrame.BackgroundTransparency = 1
+toastFrame.Parent = gui
+
+local toastLayout = Instance.new("UIListLayout")
+toastLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+toastLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+toastLayout.Padding = UDim.new(0, 6)
+toastLayout.SortOrder = Enum.SortOrder.LayoutOrder
+toastLayout.Parent = toastFrame
+
+local toastOrder = 0
+local kindColor = {
+	info = Color3.fromRGB(200, 210, 255),
+	good = COLORS.Good,
+	warn = COLORS.Warn,
+	bad = COLORS.Bad,
+	aura = COLORS.Aura,
+}
+
+local function showToast(text: string, kind: string?)
+	toastOrder += 1
+	local f = Instance.new("TextLabel")
+	f.LayoutOrder = toastOrder
+	f.Size = UDim2.new(1, 0, 0, 32)
+	f.BackgroundColor3 = COLORS.UI
+	f.Font = Enum.Font.GothamMedium
+	f.TextSize = 15
+	f.TextColor3 = kindColor[kind or "info"] or kindColor.info
+	f.Text = text
+	f.Parent = toastFrame
+	corner(f, 8)
+	f.TextTransparency = 1
+	f.BackgroundTransparency = 1
+	TweenService:Create(f, TweenInfo.new(0.2), { TextTransparency = 0, BackgroundTransparency = 0.15 }):Play()
+	if not settings.reduceFx then
+		playSfx("Notify")
+	end
+	task.delay(2.6, function()
+		local tw = TweenService:Create(f, TweenInfo.new(0.35), { TextTransparency = 1, BackgroundTransparency = 1 })
+		tw:Play()
+		tw.Completed:Wait()
+		f:Destroy()
+	end)
+end
+
+-- Modal helper
+local function makeModal(name: string, titleText: string, size: UDim2): (Frame, Frame, TextButton)
+	local panel = Instance.new("Frame")
+	panel.Name = name
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	panel.Position = UDim2.fromScale(0.5, 0.5)
+	panel.Size = size
+	panel.BackgroundColor3 = COLORS.UI
+	panel.BackgroundTransparency = 0.05
+	panel.Visible = false
+	panel.Parent = gui
+	corner(panel, 16)
+	stroke(panel, COLORS.Aura, 2)
+	pad(panel, 14)
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Size = UDim2.new(1, -40, 0, 32)
+	title.Font = Enum.Font.GothamBold
+	title.TextSize = 22
+	title.TextColor3 = COLORS.Aura
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Text = titleText
+	title.Parent = panel
+
+	local close = Instance.new("TextButton")
+	close.AnchorPoint = Vector2.new(1, 0)
+	close.Position = UDim2.new(1, 0, 0, 0)
+	close.Size = UDim2.new(0, 36, 0, 36)
+	close.BackgroundColor3 = Color3.fromRGB(80, 40, 50)
+	close.Font = Enum.Font.GothamBold
+	close.TextSize = 18
+	close.TextColor3 = Color3.new(1, 1, 1)
+	close.Text = "X"
+	close.Parent = panel
+	corner(close, 8)
+
+	local body = Instance.new("Frame")
+	body.Name = "Body"
+	body.Position = UDim2.new(0, 0, 0, 44)
+	body.Size = UDim2.new(1, 0, 1, -52)
+	body.BackgroundTransparency = 1
+	body.Parent = panel
+
+	return panel, body, close
+end
+
+local function closeAllModals()
+	for _, child in gui:GetChildren() do
+		if child:IsA("Frame") and child:GetAttribute("IsModal") then
+			child.Visible = false
+		end
+	end
+end
+
+-- Finish panel
+local finishPanel = Instance.new("Frame")
+finishPanel.Name = "FinishPanel"
+finishPanel.AnchorPoint = Vector2.new(0.5, 0.5)
+finishPanel.Position = UDim2.fromScale(0.5, 0.5)
+finishPanel.Size = UDim2.new(0, 340, 0, 260)
+finishPanel.BackgroundColor3 = COLORS.UI
+finishPanel.BackgroundTransparency = 0.05
+finishPanel.Visible = false
+finishPanel:SetAttribute("IsModal", true)
+finishPanel.Parent = gui
+corner(finishPanel, 16)
+stroke(finishPanel, COLORS.Finish, 2)
+pad(finishPanel, 16)
+
+local finishTitle = Instance.new("TextLabel")
+finishTitle.BackgroundTransparency = 1
+finishTitle.Size = UDim2.new(1, 0, 0, 36)
+finishTitle.Font = Enum.Font.GothamBold
+finishTitle.TextSize = 26
+finishTitle.TextColor3 = COLORS.Finish
+finishTitle.Text = "Stage Clear!"
+finishTitle.Parent = finishPanel
+
+local finishBody = Instance.new("TextLabel")
+finishBody.BackgroundTransparency = 1
+finishBody.Position = UDim2.new(0, 0, 0, 44)
+finishBody.Size = UDim2.new(1, 0, 0, 120)
+finishBody.Font = Enum.Font.Gotham
+finishBody.TextSize = 16
+finishBody.TextColor3 = Color3.fromRGB(230, 230, 240)
+finishBody.TextWrapped = true
+finishBody.TextYAlignment = Enum.TextYAlignment.Top
+finishBody.Text = ""
+finishBody.Parent = finishPanel
+
+local finishAgain = Instance.new("TextButton")
+finishAgain.Position = UDim2.new(0, 0, 1, -52)
+finishAgain.Size = UDim2.new(0.48, -4, 0, 44)
+finishAgain.BackgroundColor3 = Color3.fromRGB(60, 160, 100)
+finishAgain.Font = Enum.Font.GothamBold
+finishAgain.TextSize = 16
+finishAgain.TextColor3 = Color3.new(1, 1, 1)
+finishAgain.Text = "Run Again"
+finishAgain.Parent = finishPanel
+corner(finishAgain, 12)
+
+local finishShop = Instance.new("TextButton")
+finishShop.Position = UDim2.new(0.52, 4, 1, -52)
+finishShop.Size = UDim2.new(0.48, -4, 0, 44)
+finishShop.BackgroundColor3 = Color3.fromRGB(120, 70, 200)
+finishShop.Font = Enum.Font.GothamBold
+finishShop.TextSize = 16
+finishShop.TextColor3 = Color3.new(1, 1, 1)
+finishShop.Text = "Open Shop"
+finishShop.Parent = finishPanel
+corner(finishShop, 12)
+
+-- Shop
+local shopPanel, shopBody, shopClose = makeModal("ShopPanel", "Aura Shop — Trails", UDim2.new(0, 380, 0, 420))
+shopPanel:SetAttribute("IsModal", true)
+local shopScroll = Instance.new("ScrollingFrame")
+shopScroll.Size = UDim2.fromScale(1, 1)
+shopScroll.BackgroundTransparency = 1
+shopScroll.BorderSizePixel = 0
+shopScroll.ScrollBarThickness = 6
+shopScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+shopScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+shopScroll.Parent = shopBody
+local shopList = Instance.new("UIListLayout")
+shopList.Padding = UDim.new(0, 8)
+shopList.Parent = shopScroll
+local shopRows: { [string]: Frame } = {}
+
+local function refreshShop()
+	for _, row in shopRows do
+		row:Destroy()
+	end
+	table.clear(shopRows)
+	for _, def in CosmeticsCatalog.All() do
+		local row = Instance.new("Frame")
+		row.Size = UDim2.new(1, -8, 0, 72)
+		row.BackgroundColor3 = Color3.fromRGB(28, 28, 42)
+		row.Parent = shopScroll
+		corner(row, 10)
+		stroke(row, def.color, 1)
+		pad(row, 10)
+
+		local swatch = Instance.new("Frame")
+		swatch.Size = UDim2.new(0, 20, 1, 0)
+		swatch.BackgroundColor3 = def.color
+		swatch.Parent = row
+		corner(swatch, 6)
+
+		local name = Instance.new("TextLabel")
+		name.BackgroundTransparency = 1
+		name.Position = UDim2.new(0, 28, 0, 0)
+		name.Size = UDim2.new(1, -140, 0, 24)
+		name.Font = Enum.Font.GothamBold
+		name.TextSize = 16
+		name.TextColor3 = Color3.new(1, 1, 1)
+		name.TextXAlignment = Enum.TextXAlignment.Left
+		name.Text = def.name
+		name.Parent = row
+
+		local desc = Instance.new("TextLabel")
+		desc.BackgroundTransparency = 1
+		desc.Position = UDim2.new(0, 28, 0, 26)
+		desc.Size = UDim2.new(1, -140, 0, 28)
+		desc.Font = Enum.Font.Gotham
+		desc.TextSize = 12
+		desc.TextColor3 = Color3.fromRGB(180, 180, 200)
+		desc.TextXAlignment = Enum.TextXAlignment.Left
+		desc.TextWrapped = true
+		desc.Text = def.description
+		desc.Parent = row
+
+		local action = Instance.new("TextButton")
+		action.AnchorPoint = Vector2.new(1, 0.5)
+		action.Position = UDim2.new(1, 0, 0.5, 0)
+		action.Size = UDim2.new(0, 100, 0, 36)
+		action.Font = Enum.Font.GothamBold
+		action.TextSize = 14
+		action.TextColor3 = Color3.new(1, 1, 1)
+		action.Parent = row
+		corner(action, 8)
+
+		local owned = unlocked[def.id] == true
+		local equipped = equippedTrail == def.id
+		if equipped then
+			action.Text = "Equipped"
+			action.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+		elseif owned then
+			action.Text = "Equip"
+			action.BackgroundColor3 = Color3.fromRGB(50, 120, 200)
+			action.MouseButton1Click:Connect(function()
+				playSfx("Click")
+				EquipCosmetic:FireServer(def.id)
+			end)
+		else
+			action.Text = def.priceAura > 0 and (FormatUtil.Comma(def.priceAura) .. " Aura") or "Free"
+			action.BackgroundColor3 = Color3.fromRGB(120, 70, 200)
+			action.MouseButton1Click:Connect(function()
+				playSfx("Click")
+				BuyCosmetic:FireServer(def.id)
+			end)
+		end
+		shopRows[def.id] = row
+	end
+end
+
+-- Quests panel
+local questPanel, questBody, questClose = makeModal("QuestPanel", "Daily Quests", UDim2.new(0, 380, 0, 400))
+questPanel:SetAttribute("IsModal", true)
+local questHeader = Instance.new("TextLabel")
+questHeader.BackgroundTransparency = 1
+questHeader.Size = UDim2.new(1, 0, 0, 40)
+questHeader.Font = Enum.Font.Gotham
+questHeader.TextSize = 14
+questHeader.TextColor3 = Color3.fromRGB(200, 200, 220)
+questHeader.TextXAlignment = Enum.TextXAlignment.Left
+questHeader.TextWrapped = true
+questHeader.Text = "Loading…"
+questHeader.Parent = questBody
+
+local questScroll = Instance.new("ScrollingFrame")
+questScroll.Position = UDim2.new(0, 0, 0, 44)
+questScroll.Size = UDim2.new(1, 0, 1, -44)
+questScroll.BackgroundTransparency = 1
+questScroll.BorderSizePixel = 0
+questScroll.ScrollBarThickness = 6
+questScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+questScroll.Parent = questBody
+local questList = Instance.new("UIListLayout")
+questList.Padding = UDim.new(0, 8)
+questList.Parent = questScroll
+
+local function refreshQuests()
+	for _, c in questScroll:GetChildren() do
+		if c:IsA("Frame") then
+			c:Destroy()
+		end
+	end
+	if not questSnap then
+		questHeader.Text = "No quest data yet"
+		return
+	end
+	questHeader.Text = string.format(
+		"Streak x%d · Resets in %s",
+		questSnap.streak or 1,
+		TimeUtil.FormatCompact(questSnap.resetsIn or 0)
+	)
+	for _, q in questSnap.quests or {} do
+		local row = Instance.new("Frame")
+		row.Size = UDim2.new(1, -8, 0, 88)
+		row.BackgroundColor3 = Color3.fromRGB(28, 28, 42)
+		row.Parent = questScroll
+		corner(row, 10)
+		pad(row, 10)
+
+		local title = Instance.new("TextLabel")
+		title.BackgroundTransparency = 1
+		title.Size = UDim2.new(1, -110, 0, 22)
+		title.Font = Enum.Font.GothamBold
+		title.TextSize = 16
+		title.TextColor3 = Color3.new(1, 1, 1)
+		title.TextXAlignment = Enum.TextXAlignment.Left
+		title.Text = q.name
+		title.Parent = row
+
+		local desc = Instance.new("TextLabel")
+		desc.BackgroundTransparency = 1
+		desc.Position = UDim2.new(0, 0, 0, 22)
+		desc.Size = UDim2.new(1, -110, 0, 28)
+		desc.Font = Enum.Font.Gotham
+		desc.TextSize = 12
+		desc.TextColor3 = Color3.fromRGB(180, 180, 200)
+		desc.TextXAlignment = Enum.TextXAlignment.Left
+		desc.TextWrapped = true
+		desc.Text = q.description
+		desc.Parent = row
+
+		local prog = Instance.new("TextLabel")
+		prog.BackgroundTransparency = 1
+		prog.Position = UDim2.new(0, 0, 0, 52)
+		prog.Size = UDim2.new(1, -110, 0, 20)
+		prog.Font = Enum.Font.GothamMedium
+		prog.TextSize = 13
+		prog.TextColor3 = q.complete and COLORS.Good or Color3.fromRGB(200, 210, 255)
+		prog.TextXAlignment = Enum.TextXAlignment.Left
+		prog.Text = string.format("%d / %d  ·  +%d Aura", math.min(q.progress, q.target), q.target, q.rewardAura)
+		prog.Parent = row
+
+		local btn = Instance.new("TextButton")
+		btn.AnchorPoint = Vector2.new(1, 0.5)
+		btn.Position = UDim2.new(1, 0, 0.5, 0)
+		btn.Size = UDim2.new(0, 96, 0, 36)
+		btn.Font = Enum.Font.GothamBold
+		btn.TextSize = 14
+		btn.TextColor3 = Color3.new(1, 1, 1)
+		btn.Parent = row
+		corner(btn, 8)
+
+		if q.claimed then
+			btn.Text = "Claimed"
+			btn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+		elseif q.complete then
+			btn.Text = "Claim"
+			btn.BackgroundColor3 = Color3.fromRGB(60, 160, 100)
+			btn.MouseButton1Click:Connect(function()
+				playSfx("Click")
+				ClaimQuest:FireServer(q.id)
+			end)
+		else
+			btn.Text = "Active"
+			btn.BackgroundColor3 = Color3.fromRGB(50, 70, 110)
+		end
+	end
+end
+
+-- Leaderboard
+local boardPanel, boardBody, boardClose = makeModal("BoardPanel", "Best Times", UDim2.new(0, 360, 0, 380))
+boardPanel:SetAttribute("IsModal", true)
+local boardScroll = Instance.new("ScrollingFrame")
+boardScroll.Size = UDim2.fromScale(1, 1)
+boardScroll.BackgroundTransparency = 1
+boardScroll.BorderSizePixel = 0
+boardScroll.ScrollBarThickness = 6
+boardScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+boardScroll.Parent = boardBody
+local boardList = Instance.new("UIListLayout")
+boardList.Padding = UDim.new(0, 6)
+boardList.Parent = boardScroll
+
+local function refreshBoard()
+	for _, c in boardScroll:GetChildren() do
+		if c:IsA("TextLabel") then
+			c:Destroy()
+		end
+	end
+	if #leaderboardRows == 0 then
+		local empty = Instance.new("TextLabel")
+		empty.Size = UDim2.new(1, 0, 0, 40)
+		empty.BackgroundTransparency = 1
+		empty.Font = Enum.Font.Gotham
+		empty.TextSize = 14
+		empty.TextColor3 = Color3.fromRGB(180, 180, 200)
+		empty.Text = "No times yet — finish a run!"
+		empty.Parent = boardScroll
+		return
+	end
+	for i, row in leaderboardRows do
+		local t = Instance.new("TextLabel")
+		t.Size = UDim2.new(1, -4, 0, 32)
+		t.BackgroundColor3 = Color3.fromRGB(28, 28, 42)
+		t.Font = Enum.Font.GothamMedium
+		t.TextSize = 15
+		t.TextColor3 = i == 1 and COLORS.Coin or Color3.fromRGB(220, 220, 240)
+		t.TextXAlignment = Enum.TextXAlignment.Left
+		t.Text = string.format("  #%d  %s  —  %s", i, row.name or "?", FormatUtil.Time(row.time or 0))
+		t.Parent = boardScroll
+		corner(t, 8)
+	end
+end
+
+-- Settings
+local settingsPanel, settingsBody, settingsClose =
+	makeModal("SettingsPanel", "Settings", UDim2.new(0, 320, 0, 260))
+settingsPanel:SetAttribute("IsModal", true)
+
+local function makeToggle(label: string, key: string, y: number)
+	local row = Instance.new("TextButton")
+	row.Position = UDim2.new(0, 0, 0, y)
+	row.Size = UDim2.new(1, 0, 0, 44)
+	row.BackgroundColor3 = Color3.fromRGB(28, 28, 42)
+	row.Font = Enum.Font.GothamBold
+	row.TextSize = 16
+	row.TextColor3 = Color3.new(1, 1, 1)
+	row.TextXAlignment = Enum.TextXAlignment.Left
+	row.Parent = settingsBody
+	corner(row, 10)
+	pad(row, 12)
+
+	local function redraw()
+		local on = settings[key] == true
+		row.Text = string.format("%s: %s", label, on and "ON" or "OFF")
+		row.BackgroundColor3 = on and Color3.fromRGB(40, 80, 60) or Color3.fromRGB(28, 28, 42)
+	end
+	redraw()
+	row.MouseButton1Click:Connect(function()
+		settings[key] = not settings[key]
+		redraw()
+		SettingsUpdate:FireServer(settings)
+		refreshMusic()
+		playSfx("Click")
+	end)
+	return redraw
+end
+
+local redrawMusic = makeToggle("Music", "music", 0)
+local redrawSfx = makeToggle("SFX", "sfx", 52)
+local redrawFx = makeToggle("Reduce FX", "reduceFx", 104)
+
+local verLabel = Instance.new("TextLabel")
+verLabel.Position = UDim2.new(0, 0, 0, 160)
+verLabel.Size = UDim2.new(1, 0, 0, 30)
+verLabel.BackgroundTransparency = 1
+verLabel.Font = Enum.Font.Gotham
+verLabel.TextSize = 13
+verLabel.TextColor3 = Color3.fromRGB(140, 140, 160)
+verLabel.Text = ObbyConfig.GameName .. " v" .. ObbyConfig.Version
+verLabel.Parent = settingsBody
+
+-- Tutorial overlay
+local tutPanel = Instance.new("Frame")
+tutPanel.Name = "Tutorial"
+tutPanel.AnchorPoint = Vector2.new(0.5, 1)
+tutPanel.Position = UDim2.new(0.5, 0, 1, -80)
+tutPanel.Size = UDim2.new(0, 420, 0, 130)
+tutPanel.BackgroundColor3 = Color3.fromRGB(20, 18, 40)
+tutPanel.BackgroundTransparency = 0.05
+tutPanel.Visible = false
+tutPanel.Parent = gui
+corner(tutPanel, 14)
+stroke(tutPanel, COLORS.Aura, 2)
+pad(tutPanel, 14)
+
+local tutTitle = Instance.new("TextLabel")
+tutTitle.BackgroundTransparency = 1
+tutTitle.Size = UDim2.new(1, 0, 0, 24)
+tutTitle.Font = Enum.Font.GothamBold
+tutTitle.TextSize = 18
+tutTitle.TextColor3 = COLORS.Aura
+tutTitle.TextXAlignment = Enum.TextXAlignment.Left
+tutTitle.Text = ""
+tutTitle.Parent = tutPanel
+
+local tutBody = Instance.new("TextLabel")
+tutBody.BackgroundTransparency = 1
+tutBody.Position = UDim2.new(0, 0, 0, 28)
+tutBody.Size = UDim2.new(1, 0, 0, 50)
+tutBody.Font = Enum.Font.Gotham
+tutBody.TextSize = 14
+tutBody.TextColor3 = Color3.fromRGB(220, 220, 235)
+tutBody.TextWrapped = true
+tutBody.TextXAlignment = Enum.TextXAlignment.Left
+tutBody.Text = ""
+tutBody.Parent = tutPanel
+
+local tutNext = Instance.new("TextButton")
+tutNext.AnchorPoint = Vector2.new(1, 1)
+tutNext.Position = UDim2.new(1, 0, 1, 0)
+tutNext.Size = UDim2.new(0, 110, 0, 36)
+tutNext.BackgroundColor3 = Color3.fromRGB(120, 70, 200)
+tutNext.Font = Enum.Font.GothamBold
+tutNext.TextSize = 15
+tutNext.TextColor3 = Color3.new(1, 1, 1)
+tutNext.Text = "Next"
+tutNext.Parent = tutPanel
+corner(tutNext, 10)
+
+local function showTutorialStep()
+	local steps = TutorialConfig.Steps
+	if tutorialStep < 1 or tutorialStep > #steps then
+		tutPanel.Visible = false
+		return
+	end
+	local step = steps[tutorialStep]
+	tutTitle.Text = string.format("%s (%d/%d)", step.title, tutorialStep, #steps)
+	tutBody.Text = step.body
+	tutNext.Text = tutorialStep >= #steps and "Done" or "Next"
+	tutPanel.Visible = true
+end
+
+tutNext.MouseButton1Click:Connect(function()
+	playSfx("Click")
+	if tutorialStep >= #TutorialConfig.Steps then
+		tutPanel.Visible = false
+		TutorialComplete:FireServer()
+	else
+		tutorialStep += 1
+		showTutorialStep()
+	end
+end)
+
+-- Panel open helpers
+local function setOpen(panel: Frame, open: boolean)
+	if open then
+		finishPanel.Visible = false
+		shopPanel.Visible = false
+		questPanel.Visible = false
+		boardPanel.Visible = false
+		settingsPanel.Visible = false
+		panel.Visible = true
+	else
+		panel.Visible = false
+	end
+end
+
+shopBtn.MouseButton1Click:Connect(function()
+	playSfx("Click")
+	local open = not shopPanel.Visible
+	setOpen(shopPanel, open)
+	if open then
+		refreshShop()
+	end
+end)
+shopClose.MouseButton1Click:Connect(function()
+	setOpen(shopPanel, false)
+end)
+finishShop.MouseButton1Click:Connect(function()
+	setOpen(shopPanel, true)
+	refreshShop()
+end)
+
+questBtn.MouseButton1Click:Connect(function()
+	playSfx("Click")
+	local open = not questPanel.Visible
+	setOpen(questPanel, open)
+	if open then
+		refreshQuests()
+	end
+end)
+questClose.MouseButton1Click:Connect(function()
+	setOpen(questPanel, false)
+end)
+
+boardBtn.MouseButton1Click:Connect(function()
+	playSfx("Click")
+	local open = not boardPanel.Visible
+	setOpen(boardPanel, open)
+	if open then
+		RequestLeaderboard:FireServer()
+		refreshBoard()
+	end
+end)
+boardClose.MouseButton1Click:Connect(function()
+	setOpen(boardPanel, false)
+end)
+
+settingsBtn.MouseButton1Click:Connect(function()
+	playSfx("Click")
+	setOpen(settingsPanel, not settingsPanel.Visible)
+end)
+settingsClose.MouseButton1Click:Connect(function()
+	setOpen(settingsPanel, false)
+end)
+
+local function requestRestart()
+	finished = false
+	finishPanel.Visible = false
+	runStart = os.clock()
+	RestartRequest:FireServer()
+	showToast("Restarting run…", "info")
+end
+
+restartBtn.MouseButton1Click:Connect(requestRestart)
+finishAgain.MouseButton1Click:Connect(requestRestart)
+
+UserInputService.InputBegan:Connect(function(input, gp)
+	if gp then
+		return
+	end
+	if input.KeyCode == Enum.KeyCode.R then
+		requestRestart()
+	elseif input.KeyCode == Enum.KeyCode.B then
+		local open = not shopPanel.Visible
+		setOpen(shopPanel, open)
+		if open then
+			refreshShop()
+		end
+	elseif input.KeyCode == Enum.KeyCode.Q then
+		local open = not questPanel.Visible
+		setOpen(questPanel, open)
+		if open then
+			refreshQuests()
+		end
+	elseif input.KeyCode == Enum.KeyCode.T then
+		local open = not boardPanel.Visible
+		setOpen(boardPanel, open)
+		if open then
+			RequestLeaderboard:FireServer()
+		end
+	elseif input.KeyCode == Enum.KeyCode.P then
+		setOpen(settingsPanel, not settingsPanel.Visible)
+	end
+end)
+
+local function refreshTop()
+	auraLabel.Text = "Aura: " .. FormatUtil.Compact(aura)
+	coinLabel.Text = "Coins: " .. FormatUtil.Compact(coins)
+	if stageLabel then
+		stageLabel.Text = string.format("S%d %s", stageId, stageName)
+	end
+	cpLabel.Text = "CP " .. tostring(checkpointIndex)
+	weatherChip.Text = string.format(
+		"%s%s",
+		weatherLabel,
+		weatherMult > 1 and string.format(" x%.2f", weatherMult) or ""
+	)
+end
+
+RunService.RenderStepped:Connect(function()
+	if finished then
+		return
+	end
+	timeLabel.Text = "Time: " .. FormatUtil.Time(os.clock() - runStart)
+end)
+
+-- Orb pickup sparkles (local juice)
+local function sparkAt(worldPos: Vector3)
+	if settings.reduceFx then
+		return
+	end
+	local p = Instance.new("Part")
+	p.Anchored = true
+	p.CanCollide = false
+	p.Size = Vector3.new(0.4, 0.4, 0.4)
+	p.Shape = Enum.PartType.Ball
+	p.Material = Enum.Material.Neon
+	p.Color = COLORS.Aura
+	p.Position = worldPos
+	p.Transparency = 0.2
+	p.Parent = workspace
+	TweenService:Create(p, TweenInfo.new(0.45), {
+		Transparency = 1,
+		Size = Vector3.new(2.5, 2.5, 2.5),
+		Position = worldPos + Vector3.new(0, 2, 0),
+	}):Play()
+	task.delay(0.5, function()
+		p:Destroy()
+	end)
+end
+
+-- Remotes
+Toast.OnClientEvent:Connect(function(text, kind)
+	if type(text) == "string" then
+		showToast(text, kind)
+	end
+end)
+
+PlaySound.OnClientEvent:Connect(function(name)
+	if type(name) == "string" then
+		playSfx(name)
+	end
+end)
+
+AuraUpdate.OnClientEvent:Connect(function(a, c)
+	aura = tonumber(a) or aura
+	coins = tonumber(c) or coins
+	refreshTop()
+	if shopPanel.Visible then
+		refreshShop()
+	end
+end)
+
+StatsUpdate.OnClientEvent:Connect(function(snap)
+	if type(snap) ~= "table" then
+		return
+	end
+	aura = snap.aura or aura
+	coins = snap.coins or coins
+	bestTime = snap.bestTime
+	if type(snap.stageId) == "number" then
+		stageId = snap.stageId
+	end
+	if type(snap.stageName) == "string" then
+		stageName = snap.stageName
+	end
+	if type(snap.stagesCleared) == "table" then
+		stagesCleared = snap.stagesCleared
+	end
+	equippedTrail = snap.equippedTrail or equippedTrail
+	if type(snap.unlocked) == "table" then
+		unlocked = snap.unlocked
+	end
+	checkpointIndex = snap.checkpointIndex or checkpointIndex
+	if type(snap.settings) == "table" then
+		settings.music = snap.settings.music ~= false
+		settings.sfx = snap.settings.sfx ~= false
+		settings.reduceFx = snap.settings.reduceFx == true
+		redrawMusic()
+		redrawSfx()
+		redrawFx()
+		refreshMusic()
+	end
+	if snap.loginStreak then
+		streakLabel.Text = "Streak: " .. tostring(snap.loginStreak)
+	end
+	if snap.weatherLabel then
+		weatherLabel = snap.weatherLabel
+		weatherMult = snap.weatherMult or 1
+	end
+	if snap.finished then
+		finished = true
+	end
+	refreshTop()
+	if shopPanel.Visible then
+		refreshShop()
+	end
+end)
+
+FinishEv.OnClientEvent:Connect(function(payload)
+	if type(payload) ~= "table" then
+		return
+	end
+	finished = true
+	local t = payload.time or 0
+	if payload.best == true then
+		bestTime = t
+	elseif type(payload.bestTime) == "number" then
+		bestTime = payload.bestTime
+	end
+	if type(payload.stageId) == "number" then
+		stageId = payload.stageId
+	end
+	if type(payload.stageName) == "string" then
+		stageName = payload.stageName
+		finishTitle.Text = payload.stageName .. " Clear!"
+	end
+	local gainAura = tonumber(payload.aura) or 0
+	local gainCoins = tonumber(payload.coins) or 0
+	local nextLine = ""
+	if payload.nextUnlocked and payload.nextStage then
+		nextLine = string.format("\nPortal open → Stage %d", payload.nextStage)
+	end
+	refreshTop()
+	finishBody.Text = string.format(
+		"Time: %s%s\nBest: %s\n\n+%d Aura   +%d Coins\nBanked Aura: %s%s",
+		FormatUtil.Time(t),
+		payload.best and "  ★ PB" or "",
+		bestTime and FormatUtil.Time(bestTime) or "—",
+		gainAura,
+		gainCoins,
+		FormatUtil.Comma(aura),
+		nextLine
+	)
+	finishPanel.Visible = true
+	if not settings.reduceFx then
+		-- flash
+		local cc = Instance.new("ColorCorrectionEffect")
+		cc.Brightness = 0.4
+		cc.Parent = Lighting
+		TweenService:Create(cc, TweenInfo.new(0.6), { Brightness = 0 }):Play()
+		task.delay(0.7, function()
+			cc:Destroy()
+		end)
+	end
+end)
+
+CosmeticResult.OnClientEvent:Connect(function(ok, msg)
+	showToast(tostring(msg), ok and "good" or "warn")
+	task.defer(refreshShop)
+end)
+
+AchievementUnlocked.OnClientEvent:Connect(function(info)
+	if type(info) ~= "table" then
+		return
+	end
+	showToast("★ " .. tostring(info.name), "good")
+	local banner = Instance.new("Frame")
+	banner.AnchorPoint = Vector2.new(0.5, 0)
+	banner.Position = UDim2.new(0.5, 0, 0, 90)
+	banner.Size = UDim2.new(0, 320, 0, 64)
+	banner.BackgroundColor3 = Color3.fromRGB(40, 30, 70)
+	banner.Parent = gui
+	corner(banner, 12)
+	stroke(banner, COLORS.Aura, 2)
+	local t = Instance.new("TextLabel")
+	t.BackgroundTransparency = 1
+	t.Size = UDim2.fromScale(1, 1)
+	t.Font = Enum.Font.GothamBold
+	t.TextSize = 18
+	t.TextColor3 = COLORS.Aura
+	t.Text = "Achievement\n" .. tostring(info.name)
+	t.Parent = banner
+	task.delay(3.2, function()
+		banner:Destroy()
+	end)
+end)
+
+QuestUpdate.OnClientEvent:Connect(function(snap)
+	questSnap = snap
+	if questPanel.Visible then
+		refreshQuests()
+	end
+end)
+
+QuestResult.OnClientEvent:Connect(function(ok, msg)
+	showToast(tostring(msg), ok and "good" or "warn")
+end)
+
+WeatherUpdate.OnClientEvent:Connect(function(info)
+	if type(info) ~= "table" then
+		return
+	end
+	weatherLabel = info.label or weatherLabel
+	weatherMult = info.auraMult or 1
+	refreshTop()
+end)
+
+LeaderboardUpdate.OnClientEvent:Connect(function(rows)
+	if type(rows) == "table" then
+		leaderboardRows = rows
+		if boardPanel.Visible then
+			refreshBoard()
+		end
+	end
+end)
+
+OfflineReward.OnClientEvent:Connect(function(info)
+	if type(info) ~= "table" then
+		return
+	end
+	showToast(
+		string.format("AFK rewards: +%d Aura, +%d Coins (%s)", info.aura or 0, info.coins or 0, info.label or ""),
+		"aura"
+	)
+end)
+
+TutorialState.OnClientEvent:Connect(function(done)
+	if done then
+		return
+	end
+	tutorialStep = 1
+	showTutorialStep()
+end)
+
+
+StageUpdate.OnClientEvent:Connect(function(info)
+	if type(info) ~= "table" then
+		return
+	end
+	if type(info.stageId) == "number" then
+		stageId = info.stageId
+	end
+	if type(info.stageName) == "string" then
+		stageName = info.stageName
+	end
+	if type(info.stagesCleared) == "table" then
+		stagesCleared = info.stagesCleared
+	end
+	refreshTop()
+end)
+
+refreshTop()
+showToast(ObbyConfig.GameName .. " v" .. tostring(ObbyConfig.Version) .. " · 3 stages", "aura")
+print("[ObbyClient] HUD ready")
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="LocalScript" referent="42">
+        <Properties>
+          <string name="Name">PlayerClient</string>
+          <string name="Source"><![CDATA[-- Boots Animation + Cosmetics + Graphics + Movement and wires them to the obby.
+-- Keybinds avoid ObbyClient: R restart, B shop, Q quests, T times, P settings.
+
+print("[PlayerClient] Starting")
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
+
+local player = Players.LocalPlayer
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+
+local AnimationSystem = require(script.Parent:WaitForChild("AnimationSystem"))
+local CosmeticsSystem = require(script.Parent:WaitForChild("CosmeticsSystem"))
+local GraphicsSystem = require(script.Parent:WaitForChild("GraphicsSystem"))
+local MovementSystem = require(script.Parent:WaitForChild("MovementSystem"))
+local AuraTheme = require(Shared:WaitForChild("AuraTheme"))
+
+local graphics = GraphicsSystem.new()
+local anim: any = nil
+local cosmetics: any = nil
+local movement: any = nil
+
+local function toast(text: string)
+	pcall(function()
+		StarterGui:SetCore("SendNotification", {
+			Title = "Aura Farm",
+			Text = text,
+			Duration = 2,
+		})
+	end)
+end
+
+local function bindCharacter(char: Model)
+	if anim then
+		anim:Destroy()
+		anim = nil
+	end
+	if cosmetics then
+		cosmetics:Destroy()
+		cosmetics = nil
+	end
+	if movement then
+		movement:Destroy()
+		movement = nil
+	end
+
+	local hum = char:WaitForChild("Humanoid", 10) :: Humanoid?
+	local hrp = char:WaitForChild("HumanoidRootPart", 10) :: BasePart?
+	if not hum or not hrp then
+		warn("[PlayerClient] Character missing Humanoid/HRP")
+		return
+	end
+
+	anim = AnimationSystem.new(char, hum, hrp)
+	cosmetics = CosmeticsSystem.new(char, hum, hrp)
+	movement = MovementSystem.new(char, hum, hrp)
+	print("[PlayerClient] Systems bound for", char.Name)
+end
+
+if player.Character then
+	task.spawn(bindCharacter, player.Character)
+end
+player.CharacterAdded:Connect(bindCharacter)
+
+-- Input
+UserInputService.InputBegan:Connect(function(input, gp)
+	if gp then
+		return
+	end
+	if input.KeyCode == Enum.KeyCode.E then
+		if anim then
+			local name = anim:PlayNextEmote()
+			if name then
+				toast("Emote: " .. name)
+			end
+		end
+	elseif input.KeyCode == Enum.KeyCode.Y then
+		if cosmetics then
+			cosmetics:PulseTrailColor()
+			graphics:Flash(AuraTheme.Colors.Accent, 0.25)
+			toast("Aura pulse")
+		end
+	elseif input.KeyCode == Enum.KeyCode.G then
+		local name = graphics:Cycle()
+		toast("Graphics: " .. name)
+	end
+end)
+
+-- Wire remotes for juice
+task.spawn(function()
+	local folder = ReplicatedStorage:WaitForChild("ObbyRemotes", 30)
+	if not folder then
+		warn("[PlayerClient] Remotes not found — juice hooks skipped")
+		return
+	end
+
+	local Finish = folder:WaitForChild("Finish") :: RemoteEvent
+	local StatsUpdate = folder:WaitForChild("StatsUpdate") :: RemoteEvent
+	local AchievementUnlocked = folder:FindFirstChild("AchievementUnlocked")
+
+	Finish.OnClientEvent:Connect(function()
+		if anim then
+			anim:PlayEmote("Victory")
+		end
+		if cosmetics then
+			cosmetics:PulseTrailColor()
+		end
+		graphics:Flash(AuraTheme.Colors.Gold, 0.35)
+	end)
+
+	StatsUpdate.OnClientEvent:Connect(function(snap)
+		if type(snap) ~= "table" then
+			return
+		end
+		if cosmetics and type(snap.equippedTrail) == "string" then
+			cosmetics:SetTrailId(snap.equippedTrail)
+		end
+		if type(snap.settings) == "table" and snap.settings.reduceFx ~= nil then
+			graphics:SetReduced(snap.settings.reduceFx == true)
+			if cosmetics then
+				cosmetics:SetEnabled(not snap.settings.reduceFx)
+			end
+		end
+	end)
+
+	if AchievementUnlocked and AchievementUnlocked:IsA("RemoteEvent") then
+		AchievementUnlocked.OnClientEvent:Connect(function()
+			if cosmetics then
+				cosmetics:PulseTrailColor()
+			end
+			graphics:Flash(AuraTheme.Colors.AccentHot, 0.3)
+		end)
+	end
+end)
+
+toast("Shift sprint · Ctrl crouch · C slide · E/Y/G")
+print("[PlayerClient] Ready")
+]]></string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="Workspace" referent="43">
+    <Properties>
+      <string name="Name">Workspace</string>
+      <bool name="FilteringEnabled">true</bool>
+      <bool name="NeedsPivotMigration">false</bool>
+    </Properties>
+  </Item>
+</roblox>

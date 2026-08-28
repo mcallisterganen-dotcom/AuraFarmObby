@@ -1,160 +1,146 @@
--- Client post-process presets. Complements server WeatherService (does not own ClockTime).
--- Cycles ColorCorrection / Bloom / DOF on the local client only.
+-- Aura-farm post FX + client focus fog (stage rooms).
+-- Server owns ClockTime; client adds bloom/CC and tightens fog for focus.
 
 local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+
+local AuraTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("AuraTheme"))
 
 local GraphicsSystem = {}
 GraphicsSystem.__index = GraphicsSystem
 
 local PRESETS = {
 	{
-		id = "Balanced",
-		cc = { Brightness = 0.02, Contrast = 0.08, Saturation = 0.1, TintColor = Color3.fromRGB(255, 255, 255) },
-		bloom = { Intensity = 0.35, Size = 18, Threshold = 1.1 },
-		dof = nil,
+		name = "Aura",
+		bloom = 0.55,
+		bloomSize = 28,
+		threshold = 0.85,
+		sat = 0.22,
+		contrast = 0.12,
+		tint = Color3.fromRGB(230, 210, 255),
+		fogEnd = 240,
 	},
 	{
-		id = "Vibrant",
-		cc = { Brightness = 0.05, Contrast = 0.15, Saturation = 0.35, TintColor = Color3.fromRGB(255, 245, 255) },
-		bloom = { Intensity = 0.55, Size = 24, Threshold = 0.95 },
-		dof = nil,
+		name = "Crisp",
+		bloom = 0.25,
+		bloomSize = 18,
+		threshold = 1.0,
+		sat = 0.05,
+		contrast = 0.18,
+		tint = Color3.fromRGB(255, 255, 255),
+		fogEnd = 320,
 	},
 	{
-		id = "Cinematic",
-		cc = { Brightness = -0.02, Contrast = 0.22, Saturation = -0.05, TintColor = Color3.fromRGB(240, 230, 255) },
-		bloom = { Intensity = 0.4, Size = 20, Threshold = 1.0 },
-		dof = { FarIntensity = 0.2, FocusDistance = 40, InFocusRadius = 30, NearIntensity = 0.05 },
+		name = "Dream",
+		bloom = 0.9,
+		bloomSize = 40,
+		threshold = 0.7,
+		sat = 0.35,
+		contrast = 0.08,
+		tint = Color3.fromRGB(220, 180, 255),
+		fogEnd = 180,
 	},
 	{
-		id = "Neon Night",
-		cc = { Brightness = 0.0, Contrast = 0.18, Saturation = 0.25, TintColor = Color3.fromRGB(200, 180, 255) },
-		bloom = { Intensity = 0.7, Size = 28, Threshold = 0.85 },
-		dof = nil,
-	},
-	{
-		id = "Off",
-		cc = nil,
-		bloom = nil,
-		dof = nil,
+		name = "Perf",
+		bloom = 0.1,
+		bloomSize = 12,
+		threshold = 1.2,
+		sat = 0,
+		contrast = 0.05,
+		tint = Color3.fromRGB(255, 255, 255),
+		fogEnd = 400,
 	},
 }
 
 function GraphicsSystem.new()
 	local self = setmetatable({}, GraphicsSystem)
-	self.index = 1
-	self.enabled = true
-	self.cc = nil
-	self.bloom = nil
-	self.dof = nil
-	self:_ensureEffects()
-	self:ApplyPreset(PRESETS[1].id)
+	self._index = 1
+	self._reduceFx = false
+
+	AuraTheme.ApplyLighting(Lighting)
+	AuraTheme.EnsurePostFx(Lighting)
+
+	self.bloom = Lighting:FindFirstChild("AuraBloom") :: BloomEffect
+	self.cc = Lighting:FindFirstChild("AuraCC") :: ColorCorrectionEffect
+
+	self:ApplyPreset(1)
+
+	-- Client-side focus: if FocusedStage attribute changes, tighten fog
+	local player = Players.LocalPlayer
+	self._attr = player:GetAttributeChangedSignal("FocusedStage"):Connect(function()
+		self:_applyFocusFog()
+	end)
+	self:_applyFocusFog()
+
 	return self
 end
 
-function GraphicsSystem:_ensureEffects()
-	-- Tag our effects so we don't destroy weather-unrelated lighting
-	self.cc = Lighting:FindFirstChild("AuraFarmCC")
-	if not self.cc then
-		self.cc = Instance.new("ColorCorrectionEffect")
-		self.cc.Name = "AuraFarmCC"
-		self.cc.Parent = Lighting
+function GraphicsSystem:_applyFocusFog()
+	local player = Players.LocalPlayer
+	local sid = player:GetAttribute("FocusedStage")
+	local preset = PRESETS[self._index] or PRESETS[1]
+	local fogEnd = preset.fogEnd
+	if typeof(sid) == "number" and sid > 0 then
+		fogEnd = math.min(fogEnd, AuraTheme.Room.FocusFogEnd)
 	end
-	self.bloom = Lighting:FindFirstChild("AuraFarmBloom")
-	if not self.bloom then
-		self.bloom = Instance.new("BloomEffect")
-		self.bloom.Name = "AuraFarmBloom"
-		self.bloom.Parent = Lighting
-	end
-	self.dof = Lighting:FindFirstChild("AuraFarmDOF")
-	if not self.dof then
-		self.dof = Instance.new("DepthOfFieldEffect")
-		self.dof.Name = "AuraFarmDOF"
-		self.dof.Enabled = false
-		self.dof.Parent = Lighting
-	end
+	TweenService:Create(Lighting, TweenInfo.new(0.6), {
+		FogEnd = fogEnd,
+		FogStart = 50,
+	}):Play()
 end
 
-function GraphicsSystem:ApplyPreset(id: string): string
-	local preset = PRESETS[1]
-	for i, p in PRESETS do
-		if p.id == id then
-			preset = p
-			self.index = i
-			break
-		end
+function GraphicsSystem:ApplyPreset(index: number)
+	self._index = ((index - 1) % #PRESETS) + 1
+	local p = PRESETS[self._index]
+	if self.bloom then
+		self.bloom.Intensity = if self._reduceFx then p.bloom * 0.3 else p.bloom
+		self.bloom.Size = p.bloomSize
+		self.bloom.Threshold = p.threshold
 	end
-	self:_ensureEffects()
-
-	local tweenInfo = TweenInfo.new(0.45, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-
-	if not preset.cc then
-		self.cc.Enabled = false
-		self.bloom.Enabled = false
-		self.dof.Enabled = false
-		return preset.id
+	if self.cc then
+		self.cc.Saturation = if self._reduceFx then 0 else p.sat
+		self.cc.Contrast = p.contrast
+		self.cc.TintColor = p.tint
 	end
-
-	self.cc.Enabled = true
-	TweenService:Create(self.cc, tweenInfo, preset.cc):Play()
-
-	if preset.bloom then
-		self.bloom.Enabled = true
-		TweenService:Create(self.bloom, tweenInfo, preset.bloom):Play()
-	else
-		self.bloom.Enabled = false
-	end
-
-	if preset.dof then
-		self.dof.Enabled = true
-		TweenService:Create(self.dof, tweenInfo, preset.dof):Play()
-	else
-		self.dof.Enabled = false
-	end
-
-	return preset.id
+	self:_applyFocusFog()
+	return p.name
 end
 
 function GraphicsSystem:Cycle(): string
-	self.index = (self.index % #PRESETS) + 1
-	return self:ApplyPreset(PRESETS[self.index].id)
+	return self:ApplyPreset(self._index + 1)
 end
 
-function GraphicsSystem:GetPresetName(): string
-	return PRESETS[self.index].id
+function GraphicsSystem:SetReduceFx(on: boolean)
+	self._reduceFx = on
+	self:ApplyPreset(self._index)
 end
 
-function GraphicsSystem:SetReduced(reduced: boolean)
-	if reduced then
-		self:ApplyPreset("Off")
-	else
-		self:ApplyPreset(PRESETS[math.clamp(self.index, 1, #PRESETS - 1)].id)
+function GraphicsSystem:SetReduced(on: boolean)
+	self:SetReduceFx(on)
+end
+
+function GraphicsSystem:Flash(color: Color3, duration: number?)
+	local d = duration or 0.2
+	if not self.cc then
+		return
 	end
-end
-
-function GraphicsSystem:Flash(color: Color3?, duration: number?)
-	self:_ensureEffects()
-	local prevBright = self.cc.Brightness
-	self.cc.Enabled = true
-	self.cc.TintColor = color or Color3.fromRGB(200, 160, 255)
-	self.cc.Brightness = 0.35
-	task.delay(duration or 0.15, function()
-		TweenService:Create(self.cc, TweenInfo.new(0.4), {
-			Brightness = prevBright,
-			TintColor = Color3.fromRGB(255, 255, 255),
-		}):Play()
+	local old = self.cc.TintColor
+	self.cc.TintColor = color
+	self.cc.Brightness = 0.25
+	task.delay(d, function()
+		if self.cc then
+			self.cc.Brightness = 0.02
+			self.cc.TintColor = old
+		end
 	end)
 end
 
 function GraphicsSystem:Destroy()
-	if self.cc then
-		self.cc:Destroy()
-	end
-	if self.bloom then
-		self.bloom:Destroy()
-	end
-	if self.dof then
-		self.dof:Destroy()
+	if self._attr then
+		self._attr:Disconnect()
 	end
 end
 

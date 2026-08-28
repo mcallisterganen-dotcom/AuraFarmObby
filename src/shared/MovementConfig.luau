@@ -1,32 +1,21 @@
--- Sprint / crouch / slide tuning (parkour feel without replacing default Humanoid move).
+-- Sprint / crouch / slide — snappy parkour feel.
 
 local MovementConfig = {}
 
 MovementConfig.BaseWalkSpeed = 16
-MovementConfig.SprintMultiplier = 1.45
-MovementConfig.CrouchWalkSpeed = 8
+MovementConfig.SprintMultiplier = 1.55 -- ~24.8
+MovementConfig.CrouchMultiplier = 0.55
+MovementConfig.SlideDuration = 0.55
+MovementConfig.SlideSpeedBoost = 1.35
+MovementConfig.SlideCooldown = 0.85
+MovementConfig.JumpCooldown = 50
+MovementConfig.SprintFovBoost = 8
+MovementConfig.CrouchHipHeight = 0.5 -- relative adjust if supported
 
-MovementConfig.Sliding = {
-	Enabled = true,
-	SpeedBoost = 22,
-	Duration = 0.55,
-	Cooldown = 0.85,
-	MinForwardSpeed = 8,
-}
-
-MovementConfig.Jump = {
-	Power = 50,
-}
-
-MovementConfig.Crouch = {
-	Enabled = true,
-	HipHeightDelta = -1.0,
-}
-
+-- Camera
 MovementConfig.Camera = {
-	NormalFOV = 70,
-	SprintFOV = 78,
-	SlideFOV = 88,
+	SprintFov = 78,
+	DefaultFov = 70,
 	TweenSpeed = 0.18,
 }
 

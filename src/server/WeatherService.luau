@@ -1,94 +1,88 @@
--- Cycling weather / lighting moods (tides WeatherService + TideService vibe).
+-- Aura-farm lighting moods (stay on-brand purple void; don't fight AuraTheme).
 
 local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local AuraTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("AuraTheme"))
 
 local WeatherService = {}
 
-type Mood = {
+export type Mood = {
 	id: string,
 	label: string,
+	auraMult: number,
 	clockTime: number,
-	brightness: number,
-	ambient: Color3,
-	outdoor: Color3,
 	fogColor: Color3,
 	fogStart: number,
 	fogEnd: number,
-	auraMult: number, -- orb aura multiplier while active
+	ambient: Color3,
 	durationSec: number,
 }
 
+local C = AuraTheme.Colors
+
 local MOODS: { Mood } = {
 	{
-		id = "clear",
-		label = "Clear Skies",
-		clockTime = 14,
-		brightness = 2.2,
-		ambient = Color3.fromRGB(130, 130, 150),
-		outdoor = Color3.fromRGB(150, 150, 170),
-		fogColor = Color3.fromRGB(190, 200, 220),
-		fogStart = 0,
-		fogEnd = 600,
+		id = "calm",
+		label = "Calm Void",
 		auraMult = 1,
-		durationSec = 90,
+		clockTime = 20.5,
+		fogColor = C.Fog,
+		fogStart = 50,
+		fogEnd = 260,
+		ambient = C.Ambient,
+		durationSec = 75,
 	},
 	{
-		id = "golden",
-		label = "Golden Hour",
-		clockTime = 17.5,
-		brightness = 1.8,
-		ambient = Color3.fromRGB(160, 120, 80),
-		outdoor = Color3.fromRGB(180, 140, 90),
-		fogColor = Color3.fromRGB(220, 180, 120),
-		fogStart = 40,
-		fogEnd = 450,
+		id = "bloom",
+		label = "Aura Bloom",
 		auraMult = 1.25,
+		clockTime = 21.2,
+		fogColor = Color3.fromRGB(70, 40, 120),
+		fogStart = 40,
+		fogEnd = 220,
+		ambient = Color3.fromRGB(90, 60, 140),
 		durationSec = 60,
 	},
 	{
 		id = "storm",
-		label = "Aura Storm",
-		clockTime = 20,
-		brightness = 1.2,
-		ambient = Color3.fromRGB(60, 50, 100),
-		outdoor = Color3.fromRGB(70, 60, 120),
-		fogColor = Color3.fromRGB(40, 30, 70),
-		fogStart = 20,
-		fogEnd = 280,
+		label = "Void Storm",
 		auraMult = 1.5,
+		clockTime = 22.0,
+		fogColor = Color3.fromRGB(30, 15, 50),
+		fogStart = 30,
+		fogEnd = 180,
+		ambient = Color3.fromRGB(50, 30, 80),
 		durationSec = 45,
 	},
 	{
-		id = "night",
-		label = "Night Run",
-		clockTime = 0.5,
-		brightness = 0.9,
-		ambient = Color3.fromRGB(40, 45, 70),
-		outdoor = Color3.fromRGB(50, 55, 90),
-		fogColor = Color3.fromRGB(20, 20, 40),
-		fogStart = 30,
-		fogEnd = 350,
-		auraMult = 1.15,
+		id = "golden",
+		label = "Golden Hour",
+		auraMult = 1.1,
+		clockTime = 18.5,
+		fogColor = Color3.fromRGB(80, 50, 90),
+		fogStart = 60,
+		fogEnd = 300,
+		ambient = Color3.fromRGB(100, 70, 110),
 		durationSec = 70,
 	},
 }
 
-local index = 1
 local current: Mood = MOODS[1]
 local started = false
+local index = 1
 
 local function apply(mood: Mood, instant: boolean?)
 	current = mood
-	local info = TweenInfo.new(instant and 0.05 or 4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+	local info = if instant then TweenInfo.new(0) else TweenInfo.new(2.5, Enum.EasingStyle.Sine)
 	TweenService:Create(Lighting, info, {
 		ClockTime = mood.clockTime,
-		Brightness = mood.brightness,
-		Ambient = mood.ambient,
-		OutdoorAmbient = mood.outdoor,
 		FogColor = mood.fogColor,
 		FogStart = mood.fogStart,
 		FogEnd = mood.fogEnd,
+		Ambient = mood.ambient,
+		OutdoorAmbient = mood.ambient:Lerp(Color3.new(1, 1, 1), 0.15),
 	}):Play()
 end
 
@@ -105,11 +99,11 @@ function WeatherService.Start(onChanged: ((Mood) -> ())?)
 		return
 	end
 	started = true
+	AuraTheme.EnsurePostFx(Lighting)
 	apply(MOODS[1], true)
 	if onChanged then
 		onChanged(current)
 	end
-
 	task.spawn(function()
 		while true do
 			task.wait(current.durationSec)

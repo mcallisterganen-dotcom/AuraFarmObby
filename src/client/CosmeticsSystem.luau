@@ -1,167 +1,81 @@
--- Client aura particles + emotes.
--- Movement trails stay on the SERVER (TrailService + CosmeticsCatalog shop).
--- This layer adds body aura FX that stack with equipped shop trails.
+-- Client aura body FX + emotes. Server owns shop trails (TrailService).
 
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local CosmeticsCatalog = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("CosmeticsCatalog"))
+local AuraTheme = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("AuraTheme"))
 
 local CosmeticsSystem = {}
 CosmeticsSystem.__index = CosmeticsSystem
 
-CosmeticsSystem.AuraSkins = {
-	Default = {
-		name = "Default Aura",
-		color = Color3.fromRGB(160, 120, 255),
-		rate = 12,
-		size = 0.35,
-	},
-	Gold = {
-		name = "Golden Aura",
-		color = Color3.fromRGB(255, 200, 40),
-		rate = 16,
-		size = 0.4,
-	},
-	Crimson = {
-		name = "Crimson Aura",
-		color = Color3.fromRGB(255, 60, 80),
-		rate = 18,
-		size = 0.45,
-	},
-	Mystic = {
-		name = "Mystic Aura",
-		color = Color3.fromRGB(120, 80, 255),
-		rate = 22,
-		size = 0.5,
-	},
-}
-
-CosmeticsSystem.AuraOrder = { "Default", "Gold", "Crimson", "Mystic" }
-
-CosmeticsSystem.Emotes = { "Victory", "Dance", "Cheer" }
-
-function CosmeticsSystem.new(character: Model, animationSystem: any)
-	local self = setmetatable({}, CosmeticsSystem)
-	self.character = character
-	self.hrp = character:WaitForChild("HumanoidRootPart") :: BasePart
-	self.animationSystem = animationSystem
-	self.equippedAura = "Default"
-	self.auraIndex = 1
-	self.emoteIndex = 0
-	self.folder = Instance.new("Folder")
-	self.folder.Name = "AuraFarmClientFX"
-	self.folder.Parent = character
-	self.emitter = nil
-	self.light = nil
-	self:_applyAura("Default")
-	return self
-end
-
-function CosmeticsSystem:_clearAura()
-	if self.emitter then
-		self.emitter:Destroy()
-		self.emitter = nil
-	end
-	if self.light then
-		self.light:Destroy()
-		self.light = nil
-	end
-end
-
-function CosmeticsSystem:_applyAura(skinName: string)
-	local skin = CosmeticsSystem.AuraSkins[skinName]
-	if not skin then
-		return false
-	end
-	self:_clearAura()
-	self.equippedAura = skinName
-
-	local att = self.hrp:FindFirstChild("AuraFarmAuraAtt")
+local function makeAuraAttachment(hrp: BasePart): ParticleEmitter
+	local att = hrp:FindFirstChild("AuraFarmAtt")
 	if not att then
 		att = Instance.new("Attachment")
-		att.Name = "AuraFarmAuraAtt"
-		att.Position = Vector3.new(0, 0, 0)
-		att.Parent = self.hrp
+		att.Name = "AuraFarmAtt"
+		att.Parent = hrp
 	end
-
-	local p = Instance.new("ParticleEmitter")
-	p.Name = "AuraSkinParticles"
-	p.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-	p.Color = ColorSequence.new(skin.color)
-	p.Size = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, skin.size),
-		NumberSequenceKeypoint.new(1, 0.05),
+	local pe = att:FindFirstChild("AuraParticles") :: ParticleEmitter?
+	if pe then
+		return pe
+	end
+	pe = Instance.new("ParticleEmitter")
+	pe.Name = "AuraParticles"
+	pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	pe.Rate = 18
+	pe.Lifetime = NumberRange.new(0.5, 1.0)
+	pe.Speed = NumberRange.new(0.4, 1.6)
+	pe.SpreadAngle = Vector2.new(40, 40)
+	pe.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.35),
+		NumberSequenceKeypoint.new(1, 0),
 	})
-	p.Transparency = NumberSequence.new({
+	pe.Transparency = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, 0.2),
 		NumberSequenceKeypoint.new(1, 1),
 	})
-	p.Lifetime = NumberRange.new(0.35, 0.7)
-	p.Rate = skin.rate
-	p.Speed = NumberRange.new(0.2, 1.2)
-	p.SpreadAngle = Vector2.new(360, 360)
-	p.RotSpeed = NumberRange.new(-40, 40)
-	p.LightEmission = 0.6
-	p.Parent = att
-	self.emitter = p
+	pe.Color = ColorSequence.new(AuraTheme.Colors.Accent, AuraTheme.Colors.AccentHot)
+	pe.LightEmission = 0.7
+	pe.LockedToPart = false
+	pe.Parent = att
+	return pe
+end
 
-	local light = Instance.new("PointLight")
-	light.Name = "AuraSkinLight"
-	light.Color = skin.color
-	light.Brightness = 0.55
-	light.Range = 8
-	light.Parent = self.hrp
+function CosmeticsSystem.new(character: Model, humanoid: Humanoid, hrp: BasePart)
+	local self = setmetatable({}, CosmeticsSystem)
+	self.character = character
+	self.humanoid = humanoid
+	self.hrp = hrp
+	self.emitter = makeAuraAttachment(hrp)
+	self._trailId = "default"
+	self._destroyed = false
+
+	-- Soft aura point light
+	local light = hrp:FindFirstChild("AuraBodyLight")
+	if not light then
+		light = Instance.new("PointLight")
+		light.Name = "AuraBodyLight"
+		light.Parent = hrp
+	end
+	light.Brightness = 0.6
+	light.Range = 10
+	light.Color = AuraTheme.Colors.Accent
 	self.light = light
 
-	return true
+	return self
 end
 
-function CosmeticsSystem:EquipAuraSkin(skinName: string): boolean
-	return self:_applyAura(skinName)
-end
-
-function CosmeticsSystem:CycleAura(): string
-	self.auraIndex = (self.auraIndex % #CosmeticsSystem.AuraOrder) + 1
-	local name = CosmeticsSystem.AuraOrder[self.auraIndex]
-	self:_applyAura(name)
-	return name
-end
-
-function CosmeticsSystem:PlayNextEmote(): string?
-	if not self.animationSystem then
-		return nil
+function CosmeticsSystem:SetTrailId(trailId: string?)
+	self._trailId = trailId or "default"
+	local def = CosmeticsCatalog.GetTrail(self._trailId) or CosmeticsCatalog.GetTrail("default")
+	if def and self.emitter then
+		self.emitter.Color = ColorSequence.new(def.color, def.color2 or def.color)
 	end
-	self.emoteIndex = (self.emoteIndex % #CosmeticsSystem.Emotes) + 1
-	local name = CosmeticsSystem.Emotes[self.emoteIndex]
-	if self.animationSystem:PlayEmote(name) then
-		return name
+	if def and self.light then
+		self.light.Color = def.color
 	end
-	return nil
-end
-
--- Pulse body color briefly to match equipped shop trail (visual juice only)
-function CosmeticsSystem:PulseTrailColor(trailId: string?)
-	local def = CosmeticsCatalog.GetTrail(trailId or "default")
-	if not def or not self.hrp then
-		return
-	end
-	local highlight = self.character:FindFirstChild("AuraFarmPulse")
-	if not highlight then
-		highlight = Instance.new("Highlight")
-		highlight.Name = "AuraFarmPulse"
-		highlight.FillTransparency = 1
-		highlight.OutlineTransparency = 0.2
-		highlight.Parent = self.character
-	end
-	highlight.OutlineColor = def.color
-	highlight.FillColor = def.color
-	highlight.FillTransparency = 0.85
-	TweenService:Create(highlight, TweenInfo.new(0.6), {
-		FillTransparency = 1,
-		OutlineTransparency = 1,
-	}):Play()
 end
 
 function CosmeticsSystem:SetEnabled(on: boolean)
@@ -173,18 +87,59 @@ function CosmeticsSystem:SetEnabled(on: boolean)
 	end
 end
 
+function CosmeticsSystem:PulseTrailColor(trailId: string?)
+	local def = CosmeticsCatalog.GetTrail(trailId or self._trailId)
+	if not def or not self.hrp then
+		return
+	end
+	local highlight = self.character:FindFirstChild("AuraPulse")
+	if not highlight then
+		highlight = Instance.new("Highlight")
+		highlight.Name = "AuraPulse"
+		highlight.FillTransparency = 0.7
+		highlight.OutlineTransparency = 0.3
+		highlight.Parent = self.character
+	end
+	highlight.OutlineColor = def.color
+	highlight.FillColor = def.color
+	highlight.Enabled = true
+	task.delay(0.45, function()
+		if highlight and highlight.Parent then
+			highlight.Enabled = false
+		end
+	end)
+end
+
+-- Cycle through catalog trails for local aura color (Y key in PlayerClient).
+function CosmeticsSystem:CycleAura(): string
+	local trails = CosmeticsCatalog.All()
+	local list = {}
+	for _, def in ipairs(trails) do
+		if type(def) == "table" and def.id then
+			table.insert(list, def.id)
+		end
+	end
+	if #list == 0 then
+		return self._trailId or "default"
+	end
+	local cur = self._trailId or "default"
+	local idx = 1
+	for i, id in ipairs(list) do
+		if id == cur then
+			idx = i
+			break
+		end
+	end
+	local nextId = list[(idx % #list) + 1]
+	self:SetTrailId(nextId)
+	self:PulseTrailColor(nextId)
+	return nextId
+end
+
 function CosmeticsSystem:Destroy()
-	self:_clearAura()
-	if self.folder then
-		self.folder:Destroy()
-	end
-	local h = self.character and self.character:FindFirstChild("AuraFarmPulse")
-	if h then
-		h:Destroy()
-	end
-	local att = self.hrp and self.hrp:FindFirstChild("AuraFarmAuraAtt")
-	if att then
-		att:Destroy()
+	self._destroyed = true
+	if self.emitter then
+		self.emitter.Enabled = false
 	end
 end
 

@@ -1,5 +1,6 @@
--- Multi-stage definitions: themes, rewards, difficulty curves.
--- Layout recipes stay in StageBuilder; this is the data layer.
+-- Multi-stage definitions — aura-farm identity (purple void rooms).
+
+local AuraTheme = require(script.Parent:WaitForChild("AuraTheme"))
 
 local StageConfig = {}
 
@@ -7,29 +8,26 @@ export type StageDef = {
 	id: number,
 	name: string,
 	subtitle: string,
-	-- World placement (stages sit side-by-side on X)
 	originX: number,
 	baseY: number,
-	-- Gameplay
 	minFinishTimeSec: number,
 	minCheckpointForFinish: number,
-	checkpointCount: number, -- expected CPs (1..n); finish is separate
-	-- Economy
+	checkpointCount: number,
 	clearAura: number,
 	clearCoins: number,
 	orbAura: number,
-	-- Presentation
-	theme: string, -- meadow | canyon | neon
+	theme: string,
 	pathColor: Color3,
 	accentColor: Color3,
 	killColor: Color3,
 	fogColor: Color3,
 	clockTime: number,
-	-- Unlock
-	requiresStage: number?, -- previous stage id that must be cleared once
+	requiresStage: number?,
 }
 
 StageConfig.LobbySpawn = Vector3.new(0, 8, 40)
+
+local C = AuraTheme.Colors
 
 StageConfig.Stages = {
 	{
@@ -45,11 +43,11 @@ StageConfig.Stages = {
 		clearCoins = 10,
 		orbAura = 2,
 		theme = "meadow",
-		pathColor = Color3.fromRGB(72, 168, 110),
-		accentColor = Color3.fromRGB(190, 255, 160),
-		killColor = Color3.fromRGB(200, 60, 70),
-		fogColor = Color3.fromRGB(140, 180, 210),
-		clockTime = 15.5,
+		pathColor = Color3.fromRGB(40, 55, 48), -- dark grass-slate (not neon floor)
+		accentColor = Color3.fromRGB(160, 255, 180),
+		killColor = C.Danger,
+		fogColor = Color3.fromRGB(50, 70, 90),
+		clockTime = 19.5,
 		requiresStage = nil,
 	},
 	{
@@ -65,11 +63,11 @@ StageConfig.Stages = {
 		clearCoins = 22,
 		orbAura = 3,
 		theme = "canyon",
-		pathColor = Color3.fromRGB(110, 90, 170),
-		accentColor = Color3.fromRGB(180, 140, 255),
-		killColor = Color3.fromRGB(255, 90, 120),
-		fogColor = Color3.fromRGB(60, 40, 90),
-		clockTime = 18.2,
+		pathColor = Color3.fromRGB(48, 36, 72),
+		accentColor = C.Accent,
+		killColor = C.Danger,
+		fogColor = Color3.fromRGB(50, 30, 80),
+		clockTime = 20.5,
 		requiresStage = 1,
 	},
 	{
@@ -85,11 +83,12 @@ StageConfig.Stages = {
 		clearCoins = 50,
 		orbAura = 4,
 		theme = "neon",
-		pathColor = Color3.fromRGB(40, 44, 70),
-		accentColor = Color3.fromRGB(80, 255, 230),
-		killColor = Color3.fromRGB(255, 50, 90),
+		-- Path is DARK plastic; neon is accent only (ParkourKit)
+		pathColor = Color3.fromRGB(28, 30, 48),
+		accentColor = C.AccentCool,
+		killColor = C.Danger,
 		fogColor = Color3.fromRGB(20, 12, 40),
-		clockTime = 21.5,
+		clockTime = 21.8,
 		requiresStage = 2,
 	},
 } :: { StageDef }

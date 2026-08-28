@@ -50,6 +50,9 @@
         },
         "ParkourKit": {
           "$path": "src/shared/ParkourKit.luau"
+        },
+        "AuraTheme": {
+          "$path": "src/shared/AuraTheme.luau"
         }
       }
     },
@@ -87,6 +90,9 @@
       },
       "Leaderstats": {
         "$path": "src/server/Leaderstats.luau"
+      },
+      "StageStreamer": {
+        "$path": "src/server/StageStreamer.luau"
       }
     },
     "StarterPlayer": {
@@ -129,19 +135,26 @@
       "$className": "Lighting",
       "$properties": {
         "Technology": "ShadowMap",
-        "Brightness": 2,
+        "Brightness": 1.6,
         "Ambient": [
-          0.3,
-          0.3,
-          0.4
+          0.27,
+          0.2,
+          0.43
         ],
         "OutdoorAmbient": [
-          0.4,
-          0.4,
-          0.5
+          0.35,
+          0.27,
+          0.55
         ],
         "GlobalShadows": true,
-        "ClockTime": 14
+        "ClockTime": 20.5,
+        "FogColor": [
+          0.16,
+          0.09,
+          0.27
+        ],
+        "FogStart": 60,
+        "FogEnd": 280
       }
     },
     "SoundService": {
