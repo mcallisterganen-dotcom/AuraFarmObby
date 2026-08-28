@@ -1,0 +1,1 @@
+-- Retired Hello placeholder (Aura Farm Obby uses ObbyServer).

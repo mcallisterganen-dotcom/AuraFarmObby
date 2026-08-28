@@ -1,0 +1,15 @@
+# Rojo place / model builds (regenerate with: rojo build -o game.rbxlx)
+*.rbxl
+*.rbxlx
+*.rbxm
+*.rbxmx
+*.lock
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Sourcemap (optional local gen)
+sourcemap.json

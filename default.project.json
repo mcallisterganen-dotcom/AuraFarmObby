@@ -1,0 +1,61 @@
+{
+  "name": "AuraFarmObby",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Shared": {
+        "$className": "Folder",
+        "ObbyConfig": {
+          "$path": "src/shared/ObbyConfig.luau"
+        }
+      }
+    },
+
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "StageBuilder": {
+        "$path": "src/server/StageBuilder.luau"
+      },
+      "ObbyServer": {
+        "$path": "src/server/ObbyServer.server.luau"
+      }
+    },
+
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "ObbyClient": {
+          "$path": "src/client/ObbyClient.client.luau"
+        }
+      }
+    },
+
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "FilteringEnabled": true
+      }
+    },
+
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "Ambient": [0.4, 0.4, 0.45],
+        "Brightness": 2,
+        "GlobalShadows": false,
+        "OutdoorAmbient": [0.5, 0.5, 0.55],
+        "ClockTime": 14
+      }
+    },
+
+    "SoundService": {
+      "$className": "SoundService",
+      "$properties": {
+        "RespectFilteringEnabled": true
+      }
+    }
+  }
+}
