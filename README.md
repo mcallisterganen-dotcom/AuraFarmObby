@@ -48,20 +48,29 @@ Enable **Studio Access to API Services** for DataStore saves + global best times
 | **Q** | Daily quests |
 | **T** | Best times board |
 | **P** | Settings |
+| **E** | Emote (Victory / Dance / Cheer) |
+| **Y** | Cycle body aura skin |
+| **G** | Cycle graphics preset |
 
 ## Loop
 1. Parkour Stage 1 (checkpoints / kills / mover / finish)
 2. Orbs → Aura (combo + lucky mult + weather mult)
-3. Finish → best time + achievements
+3. Finish → best time + achievements (+ victory emote / flash)
 4. Spend Aura on trails · claim dailies · build login streak
 5. Leave & return → soft AFK rewards
 
 ## Layout
 
 ```
-src/shared/   config, catalogs, util, remotes
-src/server/   ObbyServer + StageBuilder + services
-src/client/   full HUD (shop, quests, board, settings, tutorial)
+src/shared/   config, catalogs, util, remotes, AnimationConfig
+src/server/   ObbyServer + StageBuilder + services (trails server-side)
+src/client/   ObbyClient HUD + PlayerClient (anim / aura skins / graphics)
 ```
+
+### Your client FX (integrated)
+- `AnimationSystem` — locomotion blend + emotes (disables default Animate softly)
+- `CosmeticsSystem` — body aura particles (stacks with shop trails from `TrailService`)
+- `GraphicsSystem` — client ColorCorrection / Bloom / DOF presets (does not fight weather ClockTime)
+- Hooks: finish flash + victory emote, achievement cheer, Reduce FX toggles particles/postFX
 
 Repo: https://github.com/mcallisterganen-dotcom/AuraFarmObby

@@ -1,5 +1,5 @@
--- GraphicsSystem.luau
--- Handles visual effects, shaders, and lighting
+-- Client post-process presets. Complements server WeatherService (does not own ClockTime).
+-- Cycles ColorCorrection / Bloom / DOF on the local client only.
 
 local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
@@ -7,193 +7,155 @@ local TweenService = game:GetService("TweenService")
 local GraphicsSystem = {}
 GraphicsSystem.__index = GraphicsSystem
 
--- Preset configurations
-GraphicsSystem.Presets = {
-    Default = {
-        Brightness = 2,
-        Ambient = Color3.fromRGB(127, 127, 127),
-        OutdoorAmbient = Color3.fromRGB(127, 127, 127),
-        ClockTime = 14,
-        GlobalShadows = true,
-        EnvironmentDiffuseScale = 1,
-        EnvironmentSpecularScale = 1,
-        FogEnd = 100000,
-    },
-    
-    Neon = {  -- Vibrant, high-energy look
-        Brightness = 2.5,
-        Ambient = Color3.fromRGB(100, 150, 255),
-        OutdoorAmbient = Color3.fromRGB(100, 150, 255),
-        ClockTime = 16,
-        GlobalShadows = false,
-        EnvironmentDiffuseScale = 0.5,
-        EnvironmentSpecularScale = 1.5,
-        FogEnd = 100000,
-        Effects = {
-            BloomEffect = { Intensity = 0.8, Size = 20, Threshold = 0.7 },
-            ColorCorrectionEffect = { Saturation = 0.3, Contrast = 0.2, TintColor = Color3.fromRGB(200, 220, 255) },
-        }
-    },
-    
-    Cinematic = {  -- Dark, moody, professional
-        Brightness = 1.5,
-        Ambient = Color3.fromRGB(50, 50, 60),
-        OutdoorAmbient = Color3.fromRGB(80, 80, 100),
-        ClockTime = 17,
-        GlobalShadows = true,
-        EnvironmentDiffuseScale = 0.3,
-        EnvironmentSpecularScale = 0.8,
-        FogEnd = 100000,
-        Effects = {
-            BloomEffect = { Intensity = 0.5, Size = 15, Threshold = 0.8 },
-            ColorCorrectionEffect = { Saturation = -0.2, Contrast = 0.3, TintColor = Color3.fromRGB(220, 200, 180) },
-        }
-    },
-    
-    AuraFarm = {  -- Optimized for aura visibility
-        Brightness = 2.2,
-        Ambient = Color3.fromRGB(150, 130, 180),
-        OutdoorAmbient = Color3.fromRGB(150, 130, 180),
-        ClockTime = 12,
-        GlobalShadows = true,
-        EnvironmentDiffuseScale = 0.6,
-        EnvironmentSpecularScale = 1.2,
-        FogEnd = 100000,
-        Effects = {
-            BloomEffect = { Intensity = 1.0, Size = 25, Threshold = 0.6 },
-            ColorCorrectionEffect = { Saturation = 0.15, Contrast = 0.15, TintColor = Color3.fromRGB(220, 210, 240) },
-        }
-    },
+local PRESETS = {
+	{
+		id = "Balanced",
+		cc = { Brightness = 0.02, Contrast = 0.08, Saturation = 0.1, TintColor = Color3.fromRGB(255, 255, 255) },
+		bloom = { Intensity = 0.35, Size = 18, Threshold = 1.1 },
+		dof = nil,
+	},
+	{
+		id = "Vibrant",
+		cc = { Brightness = 0.05, Contrast = 0.15, Saturation = 0.35, TintColor = Color3.fromRGB(255, 245, 255) },
+		bloom = { Intensity = 0.55, Size = 24, Threshold = 0.95 },
+		dof = nil,
+	},
+	{
+		id = "Cinematic",
+		cc = { Brightness = -0.02, Contrast = 0.22, Saturation = -0.05, TintColor = Color3.fromRGB(240, 230, 255) },
+		bloom = { Intensity = 0.4, Size = 20, Threshold = 1.0 },
+		dof = { FarIntensity = 0.2, FocusDistance = 40, InFocusRadius = 30, NearIntensity = 0.05 },
+	},
+	{
+		id = "Neon Night",
+		cc = { Brightness = 0.0, Contrast = 0.18, Saturation = 0.25, TintColor = Color3.fromRGB(200, 180, 255) },
+		bloom = { Intensity = 0.7, Size = 28, Threshold = 0.85 },
+		dof = nil,
+	},
+	{
+		id = "Off",
+		cc = nil,
+		bloom = nil,
+		dof = nil,
+	},
 }
 
--- Create graphics system
 function GraphicsSystem.new()
-    local self = setmetatable({}, GraphicsSystem)
-    self.currentPreset = "Default"
-    self.savedSettings = {}
-    self.effects = {}
-    return self
+	local self = setmetatable({}, GraphicsSystem)
+	self.index = 1
+	self.enabled = true
+	self.cc = nil
+	self.bloom = nil
+	self.dof = nil
+	self:_ensureEffects()
+	self:ApplyPreset(PRESETS[1].id)
+	return self
 end
 
--- Apply a preset
-function GraphicsSystem:ApplyPreset(presetName: string, tweenDuration: number?)
-    tweenDuration = tweenDuration or 0.5
-    
-    local preset = self.Presets[presetName]
-    if not preset then
-        warn("Preset not found: " .. presetName)
-        return
-    end
-    
-    -- Save current settings
-    if not self.savedSettings["Default"] then
-        self.savedSettings["Default"] = {
-            Brightness = Lighting.Brightness,
-            Ambient = Lighting.Ambient,
-            OutdoorAmbient = Lighting.OutdoorAmbient,
-            ClockTime = Lighting.ClockTime,
-        }
-    end
-    
-    -- Tween lighting properties
-    local tweenInfo = TweenInfo.new(
-        tweenDuration,
-        Enum.EasingStyle.Quad,
-        Enum.EasingDirection.InOut
-    )
-    
-    local tweenData = {
-        Brightness = preset.Brightness,
-        Ambient = preset.Ambient,
-        OutdoorAmbient = preset.OutdoorAmbient,
-    }
-    
-    local tween = TweenService:Create(Lighting, tweenInfo, tweenData)
-    tween:Play()
-    
-    -- Apply non-tweened properties immediately
-    Lighting.ClockTime = preset.ClockTime
-    Lighting.GlobalShadows = preset.GlobalShadows
-    Lighting.EnvironmentDiffuseScale = preset.EnvironmentDiffuseScale
-    Lighting.EnvironmentSpecularScale = preset.EnvironmentSpecularScale
-    Lighting.FogEnd = preset.FogEnd
-    
-    -- Remove old effects
-    self:_clearEffects()
-    
-    -- Apply new effects
-    if preset.Effects then
-        self:_applyEffects(preset.Effects)
-    end
-    
-    self.currentPreset = presetName
+function GraphicsSystem:_ensureEffects()
+	-- Tag our effects so we don't destroy weather-unrelated lighting
+	self.cc = Lighting:FindFirstChild("AuraFarmCC")
+	if not self.cc then
+		self.cc = Instance.new("ColorCorrectionEffect")
+		self.cc.Name = "AuraFarmCC"
+		self.cc.Parent = Lighting
+	end
+	self.bloom = Lighting:FindFirstChild("AuraFarmBloom")
+	if not self.bloom then
+		self.bloom = Instance.new("BloomEffect")
+		self.bloom.Name = "AuraFarmBloom"
+		self.bloom.Parent = Lighting
+	end
+	self.dof = Lighting:FindFirstChild("AuraFarmDOF")
+	if not self.dof then
+		self.dof = Instance.new("DepthOfFieldEffect")
+		self.dof.Name = "AuraFarmDOF"
+		self.dof.Enabled = false
+		self.dof.Parent = Lighting
+	end
 end
 
--- Apply post-processing effects
-function GraphicsSystem:_applyEffects(effectsTable: table)
-    for effectName, props in pairs(effectsTable) do
-        local effect = Instance.new(effectName)
-        
-        -- Set properties
-        for prop, value in pairs(props) do
-            pcall(function()
-                effect[prop] = value
-            end)
-        end
-        
-        effect.Parent = Lighting
-        table.insert(self.effects, effect)
-    end
+function GraphicsSystem:ApplyPreset(id: string): string
+	local preset = PRESETS[1]
+	for i, p in PRESETS do
+		if p.id == id then
+			preset = p
+			self.index = i
+			break
+		end
+	end
+	self:_ensureEffects()
+
+	local tweenInfo = TweenInfo.new(0.45, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+
+	if not preset.cc then
+		self.cc.Enabled = false
+		self.bloom.Enabled = false
+		self.dof.Enabled = false
+		return preset.id
+	end
+
+	self.cc.Enabled = true
+	TweenService:Create(self.cc, tweenInfo, preset.cc):Play()
+
+	if preset.bloom then
+		self.bloom.Enabled = true
+		TweenService:Create(self.bloom, tweenInfo, preset.bloom):Play()
+	else
+		self.bloom.Enabled = false
+	end
+
+	if preset.dof then
+		self.dof.Enabled = true
+		TweenService:Create(self.dof, tweenInfo, preset.dof):Play()
+	else
+		self.dof.Enabled = false
+	end
+
+	return preset.id
 end
 
--- Clear all effects
-function GraphicsSystem:_clearEffects()
-    for _, effect in ipairs(self.effects) do
-        pcall(function()
-            effect:Destroy()
-        end)
-    end
-    self.effects = {}
+function GraphicsSystem:Cycle(): string
+	self.index = (self.index % #PRESETS) + 1
+	return self:ApplyPreset(PRESETS[self.index].id)
 end
 
--- Add particle effect to a part
-function GraphicsSystem:AddAuraParticles(part: BasePart, auraColor: Color3, auraType: string?)
-    auraType = auraType or "default"
-    
-    local emitter = Instance.new("ParticleEmitter")
-    emitter.Name = "AuraEffect_" .. auraType
-    emitter.Texture = "rbxasset://textures/Particles/smoke_main.dds"
-    emitter.Color = ColorSequence.new(auraColor)
-    emitter.LightEmission = 0.5
-    emitter.Lifetime = NumberRange.new(2, 3)
-    emitter.Rate = 15
-    emitter.Rotation = NumberRange.new(0, 360)
-    emitter.RotSpeed = NumberRange.new(-100, 100)
-    emitter.Speed = NumberRange.new(2)
-    emitter.Size = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 0.5)})
-    
-    emitter.Parent = part
-    return emitter
+function GraphicsSystem:GetPresetName(): string
+	return PRESETS[self.index].id
 end
 
--- Add glow effect
-function GraphicsSystem:AddGlowEffect(part: BasePart, glowColor: Color3, intensity: number?)
-    intensity = intensity or 0.8
-    
-    -- Store original material
-    local originalMaterial = part.Material
-    
-    -- Create a glow by adjusting properties
-    part.Material = Enum.Material.Neon
-    part.Color = glowColor
-    
-    -- Optional: Add a surface glow with a script (advanced)
-    return { Material = originalMaterial, Color = part.Color }
+function GraphicsSystem:SetReduced(reduced: boolean)
+	if reduced then
+		self:ApplyPreset("Off")
+	else
+		self:ApplyPreset(PRESETS[math.clamp(self.index, 1, #PRESETS - 1)].id)
+	end
 end
 
--- Restore default graphics
-function GraphicsSystem:RestoreDefault()
-    self:ApplyPreset("Default", 1.0)
+function GraphicsSystem:Flash(color: Color3?, duration: number?)
+	self:_ensureEffects()
+	local prevBright = self.cc.Brightness
+	self.cc.Enabled = true
+	self.cc.TintColor = color or Color3.fromRGB(200, 160, 255)
+	self.cc.Brightness = 0.35
+	task.delay(duration or 0.15, function()
+		TweenService:Create(self.cc, TweenInfo.new(0.4), {
+			Brightness = prevBright,
+			TintColor = Color3.fromRGB(255, 255, 255),
+		}):Play()
+	end)
+end
+
+function GraphicsSystem:Destroy()
+	if self.cc then
+		self.cc:Destroy()
+	end
+	if self.bloom then
+		self.bloom:Destroy()
+	end
+	if self.dof then
+		self.dof:Destroy()
+	end
 end
 
 return GraphicsSystem

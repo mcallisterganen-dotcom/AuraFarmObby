@@ -18,6 +18,7 @@
         "DailyQuests": { "$path": "src/shared/DailyQuests.luau" },
         "SoundCatalog": { "$path": "src/shared/SoundCatalog.luau" },
         "TutorialConfig": { "$path": "src/shared/TutorialConfig.luau" },
+        "AnimationConfig": { "$path": "src/shared/AnimationConfig.luau" },
         "Hello": { "$path": "src/shared/Hello.luau" }
       }
     },
@@ -40,6 +41,10 @@
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
         "ObbyClient": { "$path": "src/client/ObbyClient.client.luau" },
+        "PlayerClient": { "$path": "src/client/PlayerClient.client.luau" },
+        "AnimationSystem": { "$path": "src/client/AnimationSystem.luau" },
+        "CosmeticsSystem": { "$path": "src/client/CosmeticsSystem.luau" },
+        "GraphicsSystem": { "$path": "src/client/GraphicsSystem.luau" },
         "HelloClient": { "$path": "src/client/HelloClient.client.luau" }
       }
     },

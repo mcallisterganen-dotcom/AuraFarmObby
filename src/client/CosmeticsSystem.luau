@@ -1,222 +1,191 @@
--- CosmeticsSystem.luau
--- Handles cosmetic skins, trails, and visual customization
+-- Client aura particles + emotes.
+-- Movement trails stay on the SERVER (TrailService + CosmeticsCatalog shop).
+-- This layer adds body aura FX that stack with equipped shop trails.
 
-local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local CosmeticsCatalog = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("CosmeticsCatalog"))
 
 local CosmeticsSystem = {}
 CosmeticsSystem.__index = CosmeticsSystem
 
--- Available cosmetics
-CosmeticsSystem.Cosmetics = {
-    AuraSkins = {
-        Default = {
-            Name = "Default Aura",
-            Color = Color3.fromRGB(100, 150, 255),
-            Rarity = "Common",
-            Particles = "AuraEffect_default",
-        },
-        Gold = {
-            Name = "Golden Aura",
-            Color = Color3.fromRGB(255, 200, 0),
-            Rarity = "Rare",
-            Particles = "AuraEffect_gold",
-        },
-        Crimson = {
-            Name = "Crimson Aura",
-            Color = Color3.fromRGB(255, 50, 50),
-            Rarity = "Epic",
-            Particles = "AuraEffect_crimson",
-        },
-        Mystic = {
-            Name = "Mystic Aura",
-            Color = Color3.fromRGB(200, 100, 255),
-            Rarity = "Legendary",
-            Particles = "AuraEffect_mystic",
-        },
-    },
-    
-    Trails = {
-        None = { Name = "No Trail", Enabled = false },
-        Sparkle = {
-            Name = "Sparkle Trail",
-            Texture = "rbxasset://textures/Particles/sparkles_main.dds",
-            Color = Color3.fromRGB(200, 200, 255),
-            Lifetime = 0.5,
-            Transparency = NumberSequence.new(0, 1),
-        },
-        Fire = {
-            Name = "Fire Trail",
-            Texture = "rbxasset://textures/Particles/fire_main.dds",
-            Color = Color3.fromRGB(255, 100, 0),
-            Lifetime = 0.8,
-            Transparency = NumberSequence.new(0, 1),
-        },
-        Smoke = {
-            Name = "Smoke Trail",
-            Texture = "rbxasset://textures/Particles/smoke_main.dds",
-            Color = Color3.fromRGB(150, 150, 150),
-            Lifetime = 1.0,
-            Transparency = NumberSequence.new(0.2, 1),
-        },
-    },
-    
-    Emotes = {
-        Victory = { Name = "Victory", Animation = "rbxassetid://507770818", Duration = 3 },
-        Dance = { Name = "Dance", Animation = "rbxassetid://507771019", Duration = 5 },
-        Cheer = { Name = "Cheer", Animation = "rbxassetid://507771383", Duration = 2 },
-    },
+CosmeticsSystem.AuraSkins = {
+	Default = {
+		name = "Default Aura",
+		color = Color3.fromRGB(160, 120, 255),
+		rate = 12,
+		size = 0.35,
+	},
+	Gold = {
+		name = "Golden Aura",
+		color = Color3.fromRGB(255, 200, 40),
+		rate = 16,
+		size = 0.4,
+	},
+	Crimson = {
+		name = "Crimson Aura",
+		color = Color3.fromRGB(255, 60, 80),
+		rate = 18,
+		size = 0.45,
+	},
+	Mystic = {
+		name = "Mystic Aura",
+		color = Color3.fromRGB(120, 80, 255),
+		rate = 22,
+		size = 0.5,
+	},
 }
 
--- Create cosmetics system
-function CosmeticsSystem.new(character: Model, animationSystem)
-    local self = setmetatable({}, CosmeticsSystem)
-    
-    self.character = character
-    self.humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-    self.animationSystem = animationSystem
-    
-    self.equippedAuraSkin = "Default"
-    self.equippedTrail = "None"
-    self.equippedEmotes = {}
-    
-    self.trailConnection = nil
-    
-    return self
+CosmeticsSystem.AuraOrder = { "Default", "Gold", "Crimson", "Mystic" }
+
+CosmeticsSystem.Emotes = { "Victory", "Dance", "Cheer" }
+
+function CosmeticsSystem.new(character: Model, animationSystem: any)
+	local self = setmetatable({}, CosmeticsSystem)
+	self.character = character
+	self.hrp = character:WaitForChild("HumanoidRootPart") :: BasePart
+	self.animationSystem = animationSystem
+	self.equippedAura = "Default"
+	self.auraIndex = 1
+	self.emoteIndex = 0
+	self.folder = Instance.new("Folder")
+	self.folder.Name = "AuraFarmClientFX"
+	self.folder.Parent = character
+	self.emitter = nil
+	self.light = nil
+	self:_applyAura("Default")
+	return self
 end
 
--- Equip an aura skin cosmetic
-function CosmeticsSystem:EquipAuraSkin(skinName: string)
-    if not self.Cosmetics.AuraSkins[skinName] then
-        warn("Aura skin not found: " .. skinName)
-        return false
-    end
-    
-    local skin = self.Cosmetics.AuraSkins[skinName]
-    self.equippedAuraSkin = skinName
-    
-    -- Update particle effects on all parts
-    self:_updateAuraEffect()
-    
-    return true
+function CosmeticsSystem:_clearAura()
+	if self.emitter then
+		self.emitter:Destroy()
+		self.emitter = nil
+	end
+	if self.light then
+		self.light:Destroy()
+		self.light = nil
+	end
 end
 
--- Equip a trail cosmetic
-function CosmeticsSystem:EquipTrail(trailName: string)
-    if not self.Cosmetics.Trails[trailName] then
-        warn("Trail not found: " .. trailName)
-        return false
-    end
-    
-    -- Stop existing trail
-    if self.trailConnection then
-        self.trailConnection:Disconnect()
-    end
-    
-    self.equippedTrail = trailName
-    
-    if trailName == "None" then
-        return true
-    end
-    
-    local trailConfig = self.Cosmetics.Trails[trailName]
-    
-    -- Create trail behind player
-    self.trailConnection = RunService.Heartbeat:Connect(function()
-        self:_updateTrail(trailConfig)
-    end)
-    
-    return true
+function CosmeticsSystem:_applyAura(skinName: string)
+	local skin = CosmeticsSystem.AuraSkins[skinName]
+	if not skin then
+		return false
+	end
+	self:_clearAura()
+	self.equippedAura = skinName
+
+	local att = self.hrp:FindFirstChild("AuraFarmAuraAtt")
+	if not att then
+		att = Instance.new("Attachment")
+		att.Name = "AuraFarmAuraAtt"
+		att.Position = Vector3.new(0, 0, 0)
+		att.Parent = self.hrp
+	end
+
+	local p = Instance.new("ParticleEmitter")
+	p.Name = "AuraSkinParticles"
+	p.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	p.Color = ColorSequence.new(skin.color)
+	p.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, skin.size),
+		NumberSequenceKeypoint.new(1, 0.05),
+	})
+	p.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.2),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	p.Lifetime = NumberRange.new(0.35, 0.7)
+	p.Rate = skin.rate
+	p.Speed = NumberRange.new(0.2, 1.2)
+	p.SpreadAngle = Vector2.new(360, 360)
+	p.RotSpeed = NumberRange.new(-40, 40)
+	p.LightEmission = 0.6
+	p.Parent = att
+	self.emitter = p
+
+	local light = Instance.new("PointLight")
+	light.Name = "AuraSkinLight"
+	light.Color = skin.color
+	light.Brightness = 0.55
+	light.Range = 8
+	light.Parent = self.hrp
+	self.light = light
+
+	return true
 end
 
--- Play an emote
-function CosmeticsSystem:PlayEmote(emoteName: string)
-    if not self.Cosmetics.Emotes[emoteName] then
-        warn("Emote not found: " .. emoteName)
-        return false
-    end
-    
-    if not self.animationSystem then
-        return false
-    end
-    
-    local emote = self.Cosmetics.Emotes[emoteName]
-    self.animationSystem:PlayAction(emoteName)
-    
-    task.delay(emote.Duration, function()
-        if self.animationSystem then
-            self.animationSystem:ResumeMovement()
-        end
-    end)
-    
-    return true
+function CosmeticsSystem:EquipAuraSkin(skinName: string): boolean
+	return self:_applyAura(skinName)
 end
 
--- Update aura effects based on equipped skin
-function CosmeticsSystem:_updateAuraEffect()
-    local skin = self.Cosmetics.AuraSkins[self.equippedAuraSkin]
-    if not skin then return end
-    
-    -- Remove old aura effects
-    for _, part in ipairs(self.character:GetDescendants()) do
-        if part:FindFirstChild("AuraEffect_" .. self.equippedAuraSkin) then
-            part:FindFirstChild("AuraEffect_" .. self.equippedAuraSkin):Destroy()
-        end
-    end
-    
-    -- Add new aura effect to torso and humanoid root part
-    for _, part in ipairs({self.character:FindFirstChild("Torso"), self.humanoidRootPart}) do
-        if part then
-            local emitter = Instance.new("ParticleEmitter")
-            emitter.Name = "AuraEffect_" .. self.equippedAuraSkin
-            emitter.Texture = "rbxasset://textures/Particles/smoke_main.dds"
-            emitter.Color = ColorSequence.new(skin.Color)
-            emitter.LightEmission = 0.6
-            emitter.Lifetime = NumberRange.new(2, 3)
-            emitter.Rate = 10
-            emitter.Transparency = NumberSequence.new(0.2, 1)
-            emitter.Speed = NumberRange.new(1, 2)
-            emitter.Parent = part
-        end
-    end
+function CosmeticsSystem:CycleAura(): string
+	self.auraIndex = (self.auraIndex % #CosmeticsSystem.AuraOrder) + 1
+	local name = CosmeticsSystem.AuraOrder[self.auraIndex]
+	self:_applyAura(name)
+	return name
 end
 
--- Update trail effect
-function CosmeticsSystem:_updateTrail(trailConfig: table)
-    if not self.humanoidRootPart or not self.character.Parent then
-        return
-    end
-    
-    -- Create trail attachment if it doesn't exist
-    if not self.humanoidRootPart:FindFirstChild("TrailAttach") then
-        local attachment = Instance.new("Attachment")
-        attachment.Name = "TrailAttach"
-        attachment.Parent = self.humanoidRootPart
-        
-        local trail = Instance.new("Trail")
-        trail.Attachment0 = attachment
-        trail.Attachment1 = attachment
-        trail.MinLength = 0
-        trail.Lifetime = trailConfig.Lifetime
-        trail.Color = ColorSequence.new(trailConfig.Color)
-        trail.Transparency = trailConfig.Transparency or NumberSequence.new(0, 1)
-        trail.Parent = attachment
-    end
+function CosmeticsSystem:PlayNextEmote(): string?
+	if not self.animationSystem then
+		return nil
+	end
+	self.emoteIndex = (self.emoteIndex % #CosmeticsSystem.Emotes) + 1
+	local name = CosmeticsSystem.Emotes[self.emoteIndex]
+	if self.animationSystem:PlayEmote(name) then
+		return name
+	end
+	return nil
 end
 
--- Get equipped cosmetics info
-function CosmeticsSystem:GetEquipped()
-    return {
-        AuraSkin = self.equippedAuraSkin,
-        Trail = self.equippedTrail,
-    }
+-- Pulse body color briefly to match equipped shop trail (visual juice only)
+function CosmeticsSystem:PulseTrailColor(trailId: string?)
+	local def = CosmeticsCatalog.GetTrail(trailId or "trail_starter")
+	if not def or not self.hrp then
+		return
+	end
+	local highlight = self.character:FindFirstChild("AuraFarmPulse")
+	if not highlight then
+		highlight = Instance.new("Highlight")
+		highlight.Name = "AuraFarmPulse"
+		highlight.FillTransparency = 1
+		highlight.OutlineTransparency = 0.2
+		highlight.Parent = self.character
+	end
+	highlight.OutlineColor = def.color
+	highlight.FillColor = def.color
+	highlight.FillTransparency = 0.85
+	TweenService:Create(highlight, TweenInfo.new(0.6), {
+		FillTransparency = 1,
+		OutlineTransparency = 1,
+	}):Play()
 end
 
--- Cleanup
+function CosmeticsSystem:SetEnabled(on: boolean)
+	if self.emitter then
+		self.emitter.Enabled = on
+	end
+	if self.light then
+		self.light.Enabled = on
+	end
+end
+
 function CosmeticsSystem:Destroy()
-    if self.trailConnection then
-        self.trailConnection:Disconnect()
-    end
+	self:_clearAura()
+	if self.folder then
+		self.folder:Destroy()
+	end
+	local h = self.character and self.character:FindFirstChild("AuraFarmPulse")
+	if h then
+		h:Destroy()
+	end
+	local att = self.hrp and self.hrp:FindFirstChild("AuraFarmAuraAtt")
+	if att then
+		att:Destroy()
+	end
 end
 
 return CosmeticsSystem

@@ -1,81 +1,147 @@
--- PlayerClient.client.luau
--- Main client script that initializes animation, graphics, and cosmetics systems
+-- Boots Animation + Cosmetics + Graphics systems and wires them to the obby.
+-- Keybinds intentionally avoid ObbyClient: R restart, B shop, Q quests, T times, P settings.
+
+print("[PlayerClient] Starting")
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
 
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local scripts = script.Parent
 
--- Ensure shared modules exist
-local shared = ReplicatedStorage:WaitForChild("shared")
-local AnimationConfig = require(shared:WaitForChild("AnimationConfig"))
+local AnimationSystem = require(scripts:WaitForChild("AnimationSystem"))
+local CosmeticsSystem = require(scripts:WaitForChild("CosmeticsSystem"))
+local GraphicsSystem = require(scripts:WaitForChild("GraphicsSystem"))
 
--- Load client modules
-local client = ReplicatedStorage:WaitForChild("client")
-local AnimationSystem = require(client:WaitForChild("AnimationSystem"))
-local GraphicsSystem = require(client:WaitForChild("GraphicsSystem"))
-local CosmeticsSystem = require(client:WaitForChild("CosmeticsSystem"))
+local anim: any = nil
+local cosmetics: any = nil
+local graphics = GraphicsSystem.new()
 
--- Initialize systems
-print("[AuraFarmObby] Initializing client systems...")
-
-local animationSys = AnimationSystem.new(character, humanoid, humanoidRootPart)
-print("[AuraFarmObby] ✓ Animation System loaded")
-
-local graphicsSys = GraphicsSystem.new()
-graphicsSys:ApplyPreset("AuraFarm", 1.0)  -- Apply aura farm preset on load
-print("[AuraFarmObby] ✓ Graphics System loaded")
-
-local cosmeticsSys = CosmeticsSystem.new(character, animationSys)
-print("[AuraFarmObby] ✓ Cosmetics System loaded")
-
--- Handle character respawn
-local function onCharacterAdded(newCharacter)
-    character = newCharacter
-    humanoid = character:WaitForChild("Humanoid")
-    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-    
-    animationSys = AnimationSystem.new(character, humanoid, humanoidRootPart)
-    cosmeticsSys = CosmeticsSystem.new(character, animationSys)
+local function toast(msg: string)
+	pcall(function()
+		StarterGui:SetCore("SendNotification", {
+			Title = "Aura Farm",
+			Text = msg,
+			Duration = 2,
+		})
+	end)
+	print("[PlayerClient]", msg)
 end
 
-player.CharacterAdded:Connect(onCharacterAdded)
+local function bindCharacter(char: Model)
+	if anim then
+		anim:Destroy()
+		anim = nil
+	end
+	if cosmetics then
+		cosmetics:Destroy()
+		cosmetics = nil
+	end
 
--- Example: Test cosmetics with key presses
-local UserInputService = game:GetService("UserInputService")
+	local hum = char:WaitForChild("Humanoid", 10) :: Humanoid?
+	local hrp = char:WaitForChild("HumanoidRootPart", 10) :: BasePart?
+	if not hum or not hrp then
+		warn("[PlayerClient] Character missing Humanoid/HRP")
+		return
+	end
 
+	anim = AnimationSystem.new(char, hum, hrp)
+	cosmetics = CosmeticsSystem.new(char, anim)
+	print("[PlayerClient] Systems bound for", char.Name)
+end
+
+if player.Character then
+	task.spawn(bindCharacter, player.Character)
+end
+player.CharacterAdded:Connect(bindCharacter)
+
+-- Keybinds (non-conflicting with Obby HUD)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    
-    if input.KeyCode == Enum.KeyCode.E then
-        -- Play victory emote
-        cosmeticsSys:PlayEmote("Victory")
-    elseif input.KeyCode == Enum.KeyCode.R then
-        -- Cycle aura skins
-        local skins = {"Default", "Gold", "Crimson", "Mystic"}
-        local currentIndex = table.find(skins, cosmeticsSys.equippedAuraSkin) or 1
-        local nextSkin = skins[(currentIndex % #skins) + 1]
-        cosmeticsSys:EquipAuraSkin(nextSkin)
-        print("[AuraFarmObby] Equipped: " .. nextSkin .. " Aura")
-    elseif input.KeyCode == Enum.KeyCode.T then
-        -- Cycle trails
-        local trails = {"None", "Sparkle", "Fire", "Smoke"}
-        local currentIndex = table.find(trails, cosmeticsSys.equippedTrail) or 1
-        local nextTrail = trails[(currentIndex % #trails) + 1]
-        cosmeticsSys:EquipTrail(nextTrail)
-        print("[AuraFarmObby] Equipped: " .. nextTrail .. " Trail")
-    elseif input.KeyCode == Enum.KeyCode.G then
-        -- Cycle graphics presets
-        local presets = {"AuraFarm", "Neon", "Cinematic", "Default"}
-        local currentIndex = table.find(presets, graphicsSys.currentPreset) or 1
-        local nextPreset = presets[(currentIndex % #presets) + 1]
-        graphicsSys:ApplyPreset(nextPreset, 1.0)
-        print("[AuraFarmObby] Applied: " .. nextPreset .. " Graphics")
-    end
+	if gameProcessed then
+		return
+	end
+	if input.KeyCode == Enum.KeyCode.E then
+		if cosmetics then
+			local name = cosmetics:PlayNextEmote()
+			if name then
+				toast("Emote: " .. name)
+			end
+		end
+	elseif input.KeyCode == Enum.KeyCode.Y then
+		if cosmetics then
+			local name = cosmetics:CycleAura()
+			toast("Aura skin: " .. name)
+		end
+	elseif input.KeyCode == Enum.KeyCode.G then
+		local name = graphics:Cycle()
+		toast("Graphics: " .. name)
+	elseif input.KeyCode == Enum.KeyCode.H then
+		if cosmetics then
+			cosmetics:SetEnabled(true)
+			toast("Aura particles ON")
+		end
+	end
 end)
 
-print("[AuraFarmObby] Client initialized! Press E (emote), R (aura), T (trail), G (graphics)")
+-- Hook remotes when HUD folder appears: finish flash, trail pulse, settings reduceFx
+task.spawn(function()
+	local folder = ReplicatedStorage:WaitForChild("ObbyRemotes", 30)
+	if not folder then
+		warn("[PlayerClient] ObbyRemotes not found — juice hooks skipped")
+		return
+	end
+
+	local Finish = folder:WaitForChild("Finish") :: RemoteEvent
+	local StatsUpdate = folder:WaitForChild("StatsUpdate") :: RemoteEvent
+	local AchievementUnlocked = folder:FindFirstChild("AchievementUnlocked")
+
+	Finish.OnClientEvent:Connect(function(payload)
+		if graphics then
+			graphics:Flash(Color3.fromRGB(120, 255, 180), 0.2)
+		end
+		if cosmetics and type(payload) == "table" then
+			-- victory emote on clear
+			if anim then
+				anim:PlayEmote("Victory")
+			end
+		end
+	end)
+
+	StatsUpdate.OnClientEvent:Connect(function(snap)
+		if type(snap) ~= "table" then
+			return
+		end
+		if cosmetics and snap.equippedTrail then
+			cosmetics:PulseTrailColor(snap.equippedTrail)
+		end
+		if type(snap.settings) == "table" and graphics then
+			if snap.settings.reduceFx == true then
+				graphics:SetReduced(true)
+				if cosmetics then
+					cosmetics:SetEnabled(false)
+				end
+			else
+				graphics:SetReduced(false)
+				if cosmetics then
+					cosmetics:SetEnabled(true)
+				end
+			end
+		end
+	end)
+
+	if AchievementUnlocked and AchievementUnlocked:IsA("RemoteEvent") then
+		AchievementUnlocked.OnClientEvent:Connect(function()
+			if graphics then
+				graphics:Flash(Color3.fromRGB(200, 140, 255), 0.25)
+			end
+			if anim then
+				anim:PlayEmote("Cheer")
+			end
+		end)
+	end
+end)
+
+toast("FX ready · E emote · Y aura skin · G graphics")
+print("[PlayerClient] Ready")
