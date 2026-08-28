@@ -51,6 +51,9 @@ Enable **Studio Access to API Services** for DataStore saves + global best times
 | **E** | Emote (Victory / Dance / Cheer) |
 | **Y** | Cycle body aura skin |
 | **G** | Cycle graphics preset |
+| **Shift** | Sprint |
+| **Ctrl** | Crouch |
+| **C** | Slide |
 
 ## Loop
 1. Parkour Stage 1 (checkpoints / kills / mover / finish)
@@ -62,15 +65,18 @@ Enable **Studio Access to API Services** for DataStore saves + global best times
 ## Layout
 
 ```
-src/shared/   config, catalogs, util, remotes, AnimationConfig
-src/server/   ObbyServer + StageBuilder + services (trails server-side)
+src/shared/   config, catalogs, util, remotes, AnimationConfig, MovementConfig, AnimationConfig
+src/server/   ObbyServer + StageBuilder + TerrainGenerator + services (trails server-side)
 src/client/   ObbyClient HUD + PlayerClient (anim / aura skins / graphics)
 ```
 
-### Your client FX (integrated)
-- `AnimationSystem` — locomotion blend + emotes (disables default Animate softly)
-- `CosmeticsSystem` — body aura particles (stacks with shop trails from `TrailService`)
-- `GraphicsSystem` — client ColorCorrection / Bloom / DOF presets (does not fight weather ClockTime)
-- Hooks: finish flash + victory emote, achievement cheer, Reduce FX toggles particles/postFX
+### Your systems (integrated)
+- `AnimationSystem` — locomotion blend + emotes
+- `CosmeticsSystem` — body aura particles (stacks with server shop trails)
+- `GraphicsSystem` — client CC / Bloom / DOF (does not fight weather ClockTime)
+- `MovementSystem` — sprint / crouch / slide + FOV juice
+- `TerrainGenerator` — scenic decor around StageBuilder course
+- Hooks: finish flash + victory emote, achievement cheer, Reduce FX
+- Not double-run: IntegratedClient / ObbyManager are no-ops (logic in PlayerClient + ObbyServer)
 
 Repo: https://github.com/mcallisterganen-dotcom/AuraFarmObby

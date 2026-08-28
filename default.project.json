@@ -19,6 +19,7 @@
         "SoundCatalog": { "$path": "src/shared/SoundCatalog.luau" },
         "TutorialConfig": { "$path": "src/shared/TutorialConfig.luau" },
         "AnimationConfig": { "$path": "src/shared/AnimationConfig.luau" },
+        "MovementConfig": { "$path": "src/shared/MovementConfig.luau" },
         "Hello": { "$path": "src/shared/Hello.luau" }
       }
     },
@@ -27,6 +28,7 @@
       "$className": "ServerScriptService",
       "ObbyServer": { "$path": "src/server/ObbyServer.server.luau" },
       "StageBuilder": { "$path": "src/server/StageBuilder.luau" },
+      "TerrainGenerator": { "$path": "src/server/TerrainGenerator.luau" },
       "PlayerData": { "$path": "src/server/PlayerData.luau" },
       "TrailService": { "$path": "src/server/TrailService.luau" },
       "QuestService": { "$path": "src/server/QuestService.luau" },
@@ -45,6 +47,7 @@
         "AnimationSystem": { "$path": "src/client/AnimationSystem.luau" },
         "CosmeticsSystem": { "$path": "src/client/CosmeticsSystem.luau" },
         "GraphicsSystem": { "$path": "src/client/GraphicsSystem.luau" },
+        "MovementSystem": { "$path": "src/client/MovementSystem.luau" },
         "HelloClient": { "$path": "src/client/HelloClient.client.luau" }
       }
     },

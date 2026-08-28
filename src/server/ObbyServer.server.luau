@@ -16,6 +16,7 @@ local RNG = require(Shared:WaitForChild("RNG"))
 local RateLimiter = require(Shared:WaitForChild("RateLimiter"))
 
 local StageBuilder = require(script.Parent:WaitForChild("StageBuilder"))
+local TerrainGenerator = require(script.Parent:WaitForChild("TerrainGenerator"))
 local PlayerData = require(script.Parent:WaitForChild("PlayerData"))
 local TrailService = require(script.Parent:WaitForChild("TrailService"))
 local QuestService = require(script.Parent:WaitForChild("QuestService"))
@@ -468,7 +469,9 @@ end
 
 local stageFolder = StageBuilder.Build()
 wireStageParts(stageFolder)
-print("[ObbyServer] Stage wired")
+local terrain = TerrainGenerator.new()
+terrain:DecorateStage(stageFolder)
+print("[ObbyServer] Stage wired + decor")
 
 WeatherService.Start(function(mood)
 	WeatherUpdate:FireAllClients({

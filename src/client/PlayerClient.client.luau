@@ -1,5 +1,5 @@
--- Boots Animation + Cosmetics + Graphics systems and wires them to the obby.
--- Keybinds intentionally avoid ObbyClient: R restart, B shop, Q quests, T times, P settings.
+-- Boots Animation + Cosmetics + Graphics + Movement and wires them to the obby.
+-- Keybinds avoid ObbyClient: R restart, B shop, Q quests, T times, P settings.
 
 print("[PlayerClient] Starting")
 
@@ -14,9 +14,11 @@ local scripts = script.Parent
 local AnimationSystem = require(scripts:WaitForChild("AnimationSystem"))
 local CosmeticsSystem = require(scripts:WaitForChild("CosmeticsSystem"))
 local GraphicsSystem = require(scripts:WaitForChild("GraphicsSystem"))
+local MovementSystem = require(scripts:WaitForChild("MovementSystem"))
 
 local anim: any = nil
 local cosmetics: any = nil
+local movement: any = nil
 local graphics = GraphicsSystem.new()
 
 local function toast(msg: string)
@@ -39,6 +41,10 @@ local function bindCharacter(char: Model)
 		cosmetics:Destroy()
 		cosmetics = nil
 	end
+	if movement then
+		movement:Destroy()
+		movement = nil
+	end
 
 	local hum = char:WaitForChild("Humanoid", 10) :: Humanoid?
 	local hrp = char:WaitForChild("HumanoidRootPart", 10) :: BasePart?
@@ -49,6 +55,7 @@ local function bindCharacter(char: Model)
 
 	anim = AnimationSystem.new(char, hum, hrp)
 	cosmetics = CosmeticsSystem.new(char, anim)
+	movement = MovementSystem.new(char, hum, hrp)
 	print("[PlayerClient] Systems bound for", char.Name)
 end
 
@@ -85,7 +92,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	end
 end)
 
--- Hook remotes when HUD folder appears: finish flash, trail pulse, settings reduceFx
+-- Hook remotes when HUD folder appears
 task.spawn(function()
 	local folder = ReplicatedStorage:WaitForChild("ObbyRemotes", 30)
 	if not folder then
@@ -97,15 +104,12 @@ task.spawn(function()
 	local StatsUpdate = folder:WaitForChild("StatsUpdate") :: RemoteEvent
 	local AchievementUnlocked = folder:FindFirstChild("AchievementUnlocked")
 
-	Finish.OnClientEvent:Connect(function(payload)
+	Finish.OnClientEvent:Connect(function(_payload)
 		if graphics then
 			graphics:Flash(Color3.fromRGB(120, 255, 180), 0.2)
 		end
-		if cosmetics and type(payload) == "table" then
-			-- victory emote on clear
-			if anim then
-				anim:PlayEmote("Victory")
-			end
+		if anim then
+			anim:PlayEmote("Victory")
 		end
 	end)
 
@@ -143,5 +147,5 @@ task.spawn(function()
 	end
 end)
 
-toast("FX ready · E emote · Y aura skin · G graphics")
+toast("FX ready · Shift sprint · C slide · Ctrl crouch · E/Y/G")
 print("[PlayerClient] Ready")
